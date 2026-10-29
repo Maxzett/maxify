@@ -10,9 +10,9 @@ Maxify es una red social donde los usuarios publican, reaccionan con "me gusta" 
 | Base de datos | MongoDB | MongoDB Atlas (M0) |
 | Imágenes | Cloudinary | — |
 
-> **URLs de producción:** _(completar después del deploy)_
-> - Frontend: `https://<proyecto>.vercel.app`
-> - API: `https://<servicio>.onrender.com`
+> **URLs de producción**
+> - Frontend: [https://maxify-ten.vercel.app](https://maxify-ten.vercel.app)
+> - API: [https://maxify.onrender.com](https://maxify.onrender.com)
 
 ---
 

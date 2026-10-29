@@ -15,10 +15,11 @@ async function bootstrap() {
     }),
   );
   // Solo el frontend puede llamar a la API. Se admiten varios orígenes
-  // separados por coma (por ejemplo, el de Vercel y el local).
+  // separados por coma (por ejemplo, el de Vercel y el local). Se quita la
+  // barra final porque el navegador envía el origen sin ella.
   const origenes = (process.env.FRONTEND_ORIGIN ?? 'http://localhost:4200')
     .split(',')
-    .map((origen) => origen.trim());
+    .map((origen) => origen.trim().replace(/\/+$/, ''));
   app.enableCors({ origin: origenes });
   await app.listen(process.env.PORT ?? 3000);
 }
