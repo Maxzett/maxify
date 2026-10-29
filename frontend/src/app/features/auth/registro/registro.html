@@ -1,0 +1,157 @@
+<div class="pantalla">
+  <div class="contenedor">
+    <div class="encabezado">
+      <a class="logo" routerLink="/login">Maxify</a>
+      <span>¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a></span>
+    </div>
+
+    <form class="tarjeta formulario" [formGroup]="form" (ngSubmit)="crearCuenta()" novalidate>
+      <h1>Crear cuenta</h1>
+      <p class="subtitulo">Completá tus datos para empezar a publicar.</p>
+
+      <!-- Foto de perfil (opcional) -->
+      <div class="foto">
+        <div class="avatar avatar-grande">
+          @if (vistaPrevia()) {
+            <img [src]="vistaPrevia()" alt="Vista previa de tu foto de perfil" />
+          } @else {
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg>
+          }
+        </div>
+        <div>
+          <div class="acciones-foto">
+            <label class="boton-contorno" for="foto">
+              {{ foto() ? 'Cambiar foto' : 'Subir foto de perfil' }}
+            </label>
+            <input id="foto" type="file" accept="image/jpeg,image/png,image/webp" (change)="elegirFoto($event)" hidden />
+            @if (foto()) {
+              <button mat-button type="button" (click)="quitarFoto()">Quitar</button>
+            }
+          </div>
+          @if (errorFoto()) {
+            <p class="texto-error" role="alert">{{ errorFoto() }}</p>
+          } @else {
+            <p class="texto-ayuda">JPG, PNG o WebP. Máximo 5 MB.</p>
+          }
+        </div>
+      </div>
+
+      <div class="grilla">
+        <mat-form-field>
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" autocomplete="given-name" />
+          @if (form.controls.nombre.hasError('required')) {
+            <mat-error>Ingresá tu nombre.</mat-error>
+          } @else if (form.controls.nombre.hasError('minlength')) {
+            <mat-error>Debe tener al menos 2 caracteres.</mat-error>
+          } @else if (form.controls.nombre.hasError('maxlength')) {
+            <mat-error>Puede tener hasta 50 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Apellido</mat-label>
+          <input matInput formControlName="apellido" autocomplete="family-name" />
+          @if (form.controls.apellido.hasError('required')) {
+            <mat-error>Ingresá tu apellido.</mat-error>
+          } @else if (form.controls.apellido.hasError('minlength')) {
+            <mat-error>Debe tener al menos 2 caracteres.</mat-error>
+          } @else if (form.controls.apellido.hasError('maxlength')) {
+            <mat-error>Puede tener hasta 50 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Correo</mat-label>
+          <input matInput type="email" formControlName="correo" autocomplete="email" />
+          @if (form.controls.correo.hasError('required')) {
+            <mat-error>Ingresá tu correo.</mat-error>
+          } @else if (form.controls.correo.hasError('email')) {
+            <mat-error>El correo no es válido.</mat-error>
+          } @else if (form.controls.correo.hasError('enUso')) {
+            <mat-error>{{ form.controls.correo.getError('enUso') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Nombre de usuario</mat-label>
+          <input matInput formControlName="username" autocomplete="username" />
+          @if (form.controls.username.hasError('required')) {
+            <mat-error>Elegí un nombre de usuario.</mat-error>
+          } @else if (form.controls.username.hasError('pattern')) {
+            <mat-error>De 3 a 20 caracteres: letras, números, punto o guion bajo.</mat-error>
+          } @else if (form.controls.username.hasError('enUso')) {
+            <mat-error>{{ form.controls.username.getError('enUso') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Contraseña</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="new-password" />
+          <mat-hint>Mínimo 8 caracteres, una mayúscula y un número.</mat-hint>
+          @if (form.controls.password.hasError('required')) {
+            <mat-error>Ingresá una contraseña.</mat-error>
+          } @else if (form.controls.password.hasError('minlength')) {
+            <mat-error>Debe tener al menos 8 caracteres.</mat-error>
+          } @else if (form.controls.password.hasError('maxlength')) {
+            <mat-error>Puede tener hasta 64 caracteres.</mat-error>
+          } @else if (form.controls.password.hasError('sinMayuscula')) {
+            <mat-error>Debe tener al menos una mayúscula.</mat-error>
+          } @else if (form.controls.password.hasError('sinNumero')) {
+            <mat-error>Debe tener al menos un número.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Repetir contraseña</mat-label>
+          <input
+            matInput
+            type="password"
+            formControlName="repetirPassword"
+            autocomplete="new-password"
+            [errorStateMatcher]="repetirMatcher"
+          />
+          @if (form.controls.repetirPassword.hasError('required')) {
+            <mat-error>Repetí la contraseña.</mat-error>
+          } @else if (form.hasError('passwordsDistintas')) {
+            <mat-error>Las contraseñas no coinciden.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Fecha de nacimiento</mat-label>
+          <input matInput type="date" formControlName="fechaNacimiento" [max]="hoy" />
+          @if (form.controls.fechaNacimiento.hasError('required')) {
+            <mat-error>Ingresá tu fecha de nacimiento.</mat-error>
+          } @else if (form.controls.fechaNacimiento.hasError('fechaFutura')) {
+            <mat-error>La fecha no puede ser futura.</mat-error>
+          } @else if (form.controls.fechaNacimiento.hasError('edadMinima')) {
+            <mat-error>Tenés que tener al menos 13 años.</mat-error>
+          } @else if (form.controls.fechaNacimiento.hasError('fechaInvalida')) {
+            <mat-error>La fecha no es válida.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="ancho-completo">
+          <mat-label>Descripción breve</mat-label>
+          <textarea matInput formControlName="descripcion" rows="4"></textarea>
+          <mat-hint align="end">{{ form.controls.descripcion.value.length }} / {{ maxDescripcion }}</mat-hint>
+          @if (form.controls.descripcion.hasError('maxlength')) {
+            <mat-error>Puede tener hasta {{ maxDescripcion }} caracteres.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="acciones">
+        <a mat-stroked-button routerLink="/login">Cancelar</a>
+        <button mat-flat-button type="submit" [disabled]="cargando()">
+          @if (cargando()) {
+            <mat-spinner diameter="20" aria-label="Creando cuenta" />
+          } @else {
+            Crear cuenta
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
