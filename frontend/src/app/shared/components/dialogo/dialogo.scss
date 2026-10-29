@@ -1,0 +1,58 @@
+.dialogo {
+  padding: 28px 28px 20px;
+}
+
+.icono {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  background: var(--color-acento-suave);
+  color: var(--color-acento);
+}
+.icono-eliminar {
+  background: #fce4e2;
+  color: #b42318;
+}
+.icono-bloqueo {
+  background: var(--color-superficie-2);
+  color: var(--color-texto-2);
+}
+
+// Material agrega su propio padding: lo alineamos con el contenedor.
+.titulo {
+  padding: 0 !important;
+  margin: 0 0 8px !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+
+  &::before {
+    display: none !important;
+  }
+}
+
+mat-dialog-content {
+  padding: 0 !important;
+}
+
+.mensaje {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-texto-2);
+}
+
+mat-dialog-actions {
+  padding: 20px 0 0 !important;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.peligro {
+  --mat-button-filled-container-color: #b42318;
+  --mat-button-filled-label-text-color: #fff;
+}

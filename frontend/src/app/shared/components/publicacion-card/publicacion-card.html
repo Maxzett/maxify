@@ -1,0 +1,38 @@
+<article class="tarjeta publicacion">
+  <div class="autor">
+    @if (publicacion().autor?.imagenUrl) {
+      <img class="avatar foto-autor" [src]="publicacion().autor?.imagenUrl" alt="" />
+    } @else {
+      <span class="avatar foto-autor">{{ iniciales() }}</span>
+    }
+    <div class="datos-autor">
+      @if (publicacion().autor; as autor) {
+        <div class="nombre">{{ autor.nombre }} {{ autor.apellido }}</div>
+        <div class="meta">&#64;{{ autor.username }} · {{ publicacion().creadaEn | date: 'd MMM, HH:mm' }}</div>
+      } @else {
+        <div class="nombre">Usuario eliminado</div>
+        <div class="meta">{{ publicacion().creadaEn | date: 'd MMM, HH:mm' }}</div>
+      }
+    </div>
+  </div>
+
+  <div>
+    <h2>{{ publicacion().titulo }}</h2>
+    <p class="mensaje">{{ publicacion().mensaje }}</p>
+  </div>
+
+  @if (publicacion().imagenUrl) {
+    <img class="imagen" [src]="publicacion().imagenUrl" [alt]="publicacion().titulo" />
+  }
+
+  <div class="pie">
+    <span class="dato">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+      {{ publicacion().likesCount }} Me gusta
+    </span>
+    <span class="dato">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>
+      Comentarios
+    </span>
+  </div>
+</article>

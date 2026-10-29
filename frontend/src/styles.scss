@@ -1,0 +1,197 @@
+@use '@angular/material' as mat;
+
+// ============================================================
+// Tema "Cálido editorial" de Maxify
+// Las variables CSS son la única fuente de colores: los componentes
+// propios y los de Angular Material leen de acá, así el modo oscuro
+// solo tiene que redefinirlas.
+// ============================================================
+:root {
+  --color-fondo: #faf7f2;
+  --color-superficie: #fffdf9;
+  --color-superficie-2: #efe6da;
+  --color-borde: #ebe3d6;
+  --color-borde-fuerte: #d6cbbb;
+  --color-texto: #292524;
+  --color-texto-2: #57534e;
+  --color-texto-3: #78716c;
+  --color-acento: #c2410c;
+  --color-acento-hover: #9a3412;
+  --color-acento-suave: #fbe3d6;
+  --color-avatar-texto: #9a3412;
+  --color-error: #b42318;
+  --color-exito: #3f7d4e;
+
+  --fuente: 'Figtree', system-ui, sans-serif;
+  --radio-tarjeta: 12px;
+  --radio-input: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-fondo: #1c1917;
+    --color-superficie: #262220;
+    --color-superficie-2: #332d29;
+    --color-borde: #3d3632;
+    --color-borde-fuerte: #4d4540;
+    --color-texto: #f5f0e8;
+    --color-texto-2: #c9c0b4;
+    --color-texto-3: #a0968a;
+    --color-acento: #ea7a4b;
+    --color-acento-hover: #f29a72;
+    --color-acento-suave: #4a2618;
+    --color-avatar-texto: #f29a72;
+    --color-error: #f28b82;
+    --color-exito: #7fc79a;
+  }
+}
+
+html {
+  color-scheme: light dark;
+
+  // Tema base de Material (paleta naranja + Figtree) ...
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$orange-palette,
+        theme-type: color-scheme,
+      ),
+      typography: Figtree,
+      density: 0,
+    )
+  );
+
+  // ... ajustado a los tokens propios.
+  @include mat.theme-overrides(
+    (
+      primary: var(--color-acento),
+      on-primary: #fff,
+      surface: var(--color-superficie),
+      on-surface: var(--color-texto),
+      on-surface-variant: var(--color-texto-2),
+      outline: var(--color-borde-fuerte),
+      outline-variant: var(--color-borde),
+      error: var(--color-error),
+      surface-container: var(--color-superficie),
+      surface-container-high: var(--color-superficie),
+      surface-container-highest: var(--color-superficie-2),
+    )
+  );
+
+  // Botones en forma de píldora y con Figtree 700.
+  @include mat.button-overrides(
+    (
+      filled-container-shape: 999px,
+      outlined-container-shape: 999px,
+      text-container-shape: 999px,
+      filled-container-height: 44px,
+      outlined-container-height: 44px,
+      filled-label-text-weight: 700,
+      outlined-label-text-weight: 700,
+      text-label-text-weight: 700,
+      outlined-outline-color: var(--color-borde-fuerte),
+      outlined-label-text-color: var(--color-texto),
+    )
+  );
+
+  // Inputs con radio de 8px.
+  @include mat.form-field-overrides(
+    (
+      outlined-container-shape: 8px,
+      outlined-outline-color: var(--color-borde-fuerte),
+    )
+  );
+
+  // Modales con radio de tarjeta.
+  @include mat.dialog-overrides(
+    (
+      container-shape: 14px,
+      container-color: var(--color-superficie),
+    )
+  );
+
+  // Toasts oscuros como en los bocetos.
+  @include mat.snack-bar-overrides(
+    (
+      container-color: #292524,
+      supporting-text-color: #faf7f2,
+      button-color: #ea7a4b,
+    )
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--fuente);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--color-acento);
+}
+a:hover {
+  color: var(--color-acento-hover);
+}
+
+// Títulos: Figtree 800 con letter-spacing negativo.
+h1,
+h2,
+h3,
+.titulo {
+  font-family: var(--fuente);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.logo {
+  font-family: var(--fuente);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-acento);
+  text-decoration: none;
+}
+
+// Tarjeta base (fondo superficie + borde de 1px, sin sombra).
+.tarjeta {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-tarjeta);
+}
+
+// Avatar circular con iniciales.
+.avatar {
+  border-radius: 50%;
+  background: var(--color-superficie-2);
+  color: var(--color-avatar-texto);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 500;
+  text-decoration: none;
+  overflow: hidden;
+  object-fit: cover;
+}
+
+// Ancho completo para los campos de Material.
+.campo {
+  width: 100%;
+}
+
+// Toast de error con el borde rojo suave del boceto.
+.toast-error {
+  --mat-snack-bar-container-color: var(--color-superficie);
+  --mat-snack-bar-supporting-text-color: var(--color-texto);
+  --mat-snack-bar-button-color: var(--color-error);
+
+  .mat-mdc-snackbar-surface {
+    border: 1px solid #f2c4be;
+  }
+}

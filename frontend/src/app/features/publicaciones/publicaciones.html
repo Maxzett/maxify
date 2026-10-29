@@ -1,0 +1,33 @@
+<div class="contenedor">
+  <div class="encabezado">
+    <h1>Publicaciones</h1>
+    <div class="segmentado" role="group" aria-label="Ordenar publicaciones">
+      <button type="button" [class.activo]="orden() === 'fecha'" [attr.aria-pressed]="orden() === 'fecha'" (click)="orden.set('fecha')">
+        Más recientes
+      </button>
+      <button type="button" [class.activo]="orden() === 'likes'" [attr.aria-pressed]="orden() === 'likes'" (click)="orden.set('likes')">
+        Más gustadas
+      </button>
+    </div>
+  </div>
+
+  @if (servicio.cargando()) {
+    <div class="estado">
+      <mat-spinner diameter="40" aria-label="Cargando publicaciones" />
+    </div>
+  } @else if (servicio.error()) {
+    <div class="tarjeta estado">
+      <p>{{ servicio.error() }}</p>
+      <button mat-stroked-button type="button" (click)="servicio.cargar()">Reintentar</button>
+    </div>
+  } @else {
+    @for (publicacion of ordenadas(); track publicacion.id) {
+      <app-publicacion-card [publicacion]="publicacion" />
+    } @empty {
+      <div class="tarjeta estado">
+        <h2>Todavía no hay publicaciones</h2>
+        <p>Cuando alguien publique algo, lo vas a ver acá.</p>
+      </div>
+    }
+  }
+</div>

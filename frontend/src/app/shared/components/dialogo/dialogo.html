@@ -1,0 +1,43 @@
+<div class="dialogo">
+  <div
+    class="icono"
+    [class.icono-eliminar]="datos.icono === 'eliminar'"
+    [class.icono-bloqueo]="datos.icono === 'bloqueo'"
+    aria-hidden="true"
+  >
+    @switch (datos.icono) {
+      @case ('salir') {
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 16l4-4-4-4M19 12H9"></path></svg>
+      }
+      @case ('eliminar') {
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg>
+      }
+      @case ('bloqueo') {
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      }
+      @case ('sesion') {
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6"></path></svg>
+      }
+    }
+  </div>
+
+  <h2 mat-dialog-title class="titulo">{{ datos.titulo }}</h2>
+
+  <mat-dialog-content>
+    <p class="mensaje">{{ datos.mensaje }}</p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    @if (datos.textoCancelar) {
+      <button mat-stroked-button [mat-dialog-close]="false">{{ datos.textoCancelar }}</button>
+    }
+    <button
+      mat-flat-button
+      [class.peligro]="datos.peligro"
+      [mat-dialog-close]="true"
+      cdkFocusInitial
+    >
+      {{ datos.textoConfirmar }}
+    </button>
+  </mat-dialog-actions>
+</div>

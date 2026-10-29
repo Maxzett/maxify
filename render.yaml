@@ -1,0 +1,28 @@
+# Blueprint de Render para el backend (Render → New → Blueprint).
+# Los valores marcados con sync: false se cargan a mano en el panel.
+services:
+  - type: web
+    name: maxify-api
+    runtime: node
+    plan: free
+    # Solo se despliega la rama main (deploy oficial).
+    branch: main
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: MONGODB_URI
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
