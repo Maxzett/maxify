@@ -1,0 +1,18 @@
+# Guía interna (no se versiona)
+REQUERIMIENTOS.md
+
+# Dependencias y compilados
+node_modules/
+dist/
+.angular/
+coverage/
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Editor / SO
+.DS_Store
+Thumbs.db
+*.log
