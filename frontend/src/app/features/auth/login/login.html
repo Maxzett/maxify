@@ -1,0 +1,64 @@
+<div class="pantalla">
+  <section class="presentacion">
+    <span class="logo">Maxify</span>
+
+    <div class="mensaje">
+      <h1>Conversaciones que valen la pena.</h1>
+      <p>Publicá lo que pensás, reaccioná a lo que leés y comentá con tu comunidad.</p>
+    </div>
+
+    <div class="comunidad">
+      <div class="avatares" aria-hidden="true">
+        <span class="avatar">LM</span>
+        <span class="avatar">JP</span>
+        <span class="avatar">AR</span>
+      </div>
+      <span>Sumate a la conversación</span>
+    </div>
+  </section>
+
+  <section class="lado-form">
+    <form class="tarjeta formulario" [formGroup]="form" (ngSubmit)="ingresar()" novalidate>
+      <div>
+        <h2>Iniciar sesión</h2>
+        <p class="subtitulo">Ingresá con tu correo o nombre de usuario.</p>
+      </div>
+
+      <mat-form-field class="campo">
+        <mat-label>Correo o usuario</mat-label>
+        <input matInput formControlName="identificador" autocomplete="username" />
+        @if (form.controls.identificador.hasError('required')) {
+          <mat-error>Ingresá tu correo o nombre de usuario.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="campo">
+        <mat-label>Contraseña</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="current-password" />
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>Ingresá tu contraseña.</mat-error>
+        } @else if (form.controls.password.hasError('minlength')) {
+          <mat-error>Debe tener al menos 8 caracteres.</mat-error>
+        } @else if (form.controls.password.hasError('sinMayuscula')) {
+          <mat-error>Debe tener al menos una mayúscula.</mat-error>
+        } @else if (form.controls.password.hasError('sinNumero')) {
+          <mat-error>Debe tener al menos un número.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (errorServidor()) {
+        <p class="error-servidor" role="alert">{{ errorServidor() }}</p>
+      }
+
+      <button mat-flat-button type="submit" class="boton-principal" [disabled]="cargando()">
+        @if (cargando()) {
+          <mat-spinner diameter="20" aria-label="Ingresando" />
+        } @else {
+          Ingresar
+        }
+      </button>
+
+      <p class="pie">¿No tenés cuenta? <a routerLink="/registro">Registrate</a></p>
+    </form>
+  </section>
+</div>

@@ -1,0 +1,60 @@
+<div class="contenedor">
+  @if (auth.usuario(); as usuario) {
+    <section class="tarjeta cabecera">
+      <div class="portada"></div>
+
+      <div class="identidad">
+        @if (usuario.imagenUrl) {
+          <img class="avatar foto" [src]="usuario.imagenUrl" [alt]="'Foto de ' + usuario.nombre" />
+        } @else {
+          <span class="avatar foto">{{ auth.iniciales() }}</span>
+        }
+        <div class="nombres">
+          <h1>{{ usuario.nombre }} {{ usuario.apellido }}</h1>
+          <div class="usuario">&#64;{{ usuario.username }}</div>
+        </div>
+        <!-- La edición del perfil se agrega en un próximo sprint -->
+        <button mat-stroked-button type="button" disabled title="Disponible próximamente">
+          Editar perfil
+        </button>
+      </div>
+
+      <div class="detalle">
+        <p class="descripcion">
+          {{ usuario.descripcion || 'Todavía no agregaste una descripción.' }}
+        </p>
+        <dl class="datos">
+          <div>
+            <dt>Correo</dt>
+            <dd>{{ usuario.correo }}</dd>
+          </div>
+          <div>
+            <dt>Fecha de nacimiento</dt>
+            <dd>{{ usuario.fechaNacimiento | date: 'dd/MM/yyyy' }}</dd>
+          </div>
+          <div>
+            <dt>Miembro desde</dt>
+            <dd>{{ usuario.creadoEn | date: 'MMMM yyyy' }}</dd>
+          </div>
+          <div>
+            <dt>Perfil</dt>
+            <dd class="capitalizar">{{ usuario.perfil }}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="subtitulo">Mis últimas publicaciones</h2>
+      <div class="tarjeta vacio">
+        <p>Todavía no publicaste nada.</p>
+      </div>
+    </section>
+  } @else {
+    <section class="tarjeta vacio">
+      <h1>Mi perfil</h1>
+      <p>Iniciá sesión para ver tus datos.</p>
+      <a mat-flat-button routerLink="/login">Iniciar sesión</a>
+    </section>
+  }
+</div>

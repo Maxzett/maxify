@@ -1,0 +1,52 @@
+<header class="barra">
+  <nav class="contenido" aria-label="Navegación principal">
+    <a class="logo" routerLink="/publicaciones">Maxify</a>
+
+    @if (auth.logueado()) {
+      <!-- La pantalla de crear publicación se agrega en el Sprint 2 -->
+      <a
+        class="boton-crear"
+        routerLink="/crear-publicacion"
+        aria-label="Crear publicación"
+        title="Crear publicación"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      </a>
+    }
+
+    <div class="espacio"></div>
+
+    @if (auth.logueado()) {
+      <!-- Solo para administradores; el panel se agrega en el Sprint 4 -->
+      @if (auth.esAdmin()) {
+        <a class="boton-admin" routerLink="/dashboard/usuarios">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"></path></svg>
+          Admin
+        </a>
+      }
+
+      <button
+        type="button"
+        class="circulo"
+        (click)="cerrarSesion()"
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 16l4-4-4-4M19 12H9"></path></svg>
+      </button>
+
+      <a
+        class="circulo iniciales"
+        routerLink="/perfil"
+        routerLinkActive="activo"
+        ariaCurrentWhenActive="page"
+        aria-label="Mi perfil"
+        title="Mi perfil"
+      >
+        {{ auth.iniciales() }}
+      </a>
+    } @else {
+      <a mat-flat-button routerLink="/login">Ingresar</a>
+    }
+  </nav>
+</header>

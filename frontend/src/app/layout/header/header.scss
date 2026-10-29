@@ -1,0 +1,99 @@
+.barra {
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.contenido {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.espacio {
+  flex: 1;
+}
+
+.boton-crear {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-acento);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--color-acento-hover);
+    color: #fff;
+  }
+}
+
+.boton-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-borde-fuerte);
+  color: var(--color-texto);
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--color-superficie-2);
+    color: var(--color-texto);
+  }
+}
+
+// Ícono de salir y avatar: mismo círculo beige.
+.circulo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  background: var(--color-superficie-2);
+  color: var(--color-avatar-texto);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  font: 500 13px var(--fuente);
+
+  &:hover {
+    color: var(--color-avatar-texto);
+    filter: brightness(0.96);
+  }
+}
+
+.iniciales.activo {
+  box-shadow:
+    0 0 0 2px var(--color-superficie),
+    0 0 0 4px var(--color-acento);
+}
+
+@media (max-width: 480px) {
+  .contenido {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+  .logo {
+    font-size: 24px;
+  }
+}
