@@ -1,5 +1,5 @@
-// Entorno de producción (Vercel). Reemplazá la URL por la del servicio de Render.
+// Entorno de producción (Vercel): la API está desplegada en Render.
 export const environment = {
   production: true,
-  apiUrl: 'https://maxify-api.onrender.com',
+  apiUrl: 'https://maxify.onrender.com',
 };
