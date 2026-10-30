@@ -57,10 +57,10 @@
       margin-left: -10px;
     }
     &:nth-child(2) {
-      background: #e8d5c4;
+      background: var(--color-avatar-2);
     }
     &:nth-child(3) {
-      background: #dcc6b0;
+      background: var(--color-avatar-3);
     }
   }
 }
