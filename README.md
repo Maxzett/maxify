@@ -182,7 +182,8 @@ Otras decisiones:
 - **Validaciones en los dos lados**: el front valida para dar mensajes inmediatos y el back vuelve a validar todo, porque cualquiera puede llamar a la API directamente.
 - **Imágenes en Cloudinary**: el disco de Render es efímero (se borra en cada deploy). La foto se valida por su firma binaria, se convierte a WebP con Sharp y en Mongo se guarda solo la URL. Si el alta falla después de subirla, se borra de Cloudinary.
 - **Sesión en `localStorage`** (token + datos del usuario): front y back están en dominios distintos, y así es más simple que con cookies entre dominios.
-- **Tema "Cálido editorial"**: fondo crema `#FAF7F2`, acento terracota `#C2410C`, tipografía **Figtree** y botones en forma de píldora. Los colores son variables CSS que también alimentan el tema de Material, y tiene modo oscuro automático (`prefers-color-scheme`).
+- **Tema "Cálido editorial"**: fondo crema `#FAF7F2`, acento terracota `#C2410C`, tipografía **Figtree** y botones en forma de píldora. Los colores son variables CSS que también alimentan el tema de Material.
+- **Modo claro y oscuro automático**: la app sigue la preferencia del sistema operativo o del navegador (`prefers-color-scheme`). Cada token de color tiene su versión oscura (fondo `#1C1917`, acento `#EA7A4B`) y solo se redefinen las variables en `styles.scss`, así ningún componente necesita estilos propios para el modo oscuro.
 - **CORS** restringido a `FRONTEND_ORIGIN` (admite varios orígenes separados por coma).
 
 ---
