@@ -11,6 +11,7 @@ import type { Usuario } from '../usuarios/usuario';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { LoginDto } from './dto/login.dto';
 import { RegistroDto } from './dto/registro.dto';
+import type { UsuarioToken } from './usuario-token';
 
 // Respuesta de login y registro.
 export interface Sesion {
@@ -84,14 +85,15 @@ export class AuthService {
   }
 
   // El token lleva la identidad y el rol; vence a los 15 minutos (JwtModule).
-  // Se valida en los endpoints protegidos a partir del Sprint 3.
+  // Lo valida el JwtAuthGuard en todas las rutas que no son @Publico().
   private firmarToken(usuario: Usuario): string {
-    return this.jwt.sign({
+    const payload: UsuarioToken = {
       sub: usuario.id,
       correo: usuario.correo,
       username: usuario.username,
       perfil: usuario.perfil,
-    });
+    };
+    return this.jwt.sign(payload);
   }
 
   private validarFechaNacimiento(texto: string): Date {
