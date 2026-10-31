@@ -32,23 +32,68 @@
             <dt>Fecha de nacimiento</dt>
             <dd>{{ usuario.fechaNacimiento | date: 'dd/MM/yyyy' }}</dd>
           </div>
-          <div>
-            <dt>Miembro desde</dt>
-            <dd>{{ usuario.creadoEn | date: 'MMMM yyyy' }}</dd>
-          </div>
-          <div>
-            <dt>Perfil</dt>
-            <dd class="capitalizar">{{ usuario.perfil }}</dd>
-          </div>
         </dl>
       </div>
     </section>
 
     <section>
       <h2 class="subtitulo">Mis últimas publicaciones</h2>
-      <div class="tarjeta vacio">
-        <p>Todavía no publicaste nada.</p>
-      </div>
+
+      @if (cargando()) {
+        <div class="tarjeta vacio">
+          <mat-spinner diameter="36" aria-label="Cargando tus publicaciones" />
+        </div>
+      } @else if (error()) {
+        <div class="tarjeta vacio">
+          <p>{{ error() }}</p>
+          <button mat-stroked-button type="button" (click)="cargarPublicaciones()">Reintentar</button>
+        </div>
+      } @else {
+        <div class="grilla">
+          @for (publicacion of publicaciones(); track publicacion.id) {
+            <article class="tarjeta post">
+              <div class="meta">
+                {{ publicacion.creadaEn | date: 'd MMM yyyy' }} · {{ publicacion.likesCount }} me gusta
+              </div>
+              <h3>{{ publicacion.titulo }}</h3>
+              @if (publicacion.imagenUrl) {
+                <img class="imagen" [src]="publicacion.imagenUrl" [alt]="publicacion.titulo" loading="lazy" />
+              }
+              <p class="mensaje">{{ publicacion.mensaje }}</p>
+
+              @for (comentario of publicacion.comentarios; track comentario.id) {
+                <div class="comentario">
+                  @if (comentario.autor?.imagenUrl) {
+                    <img class="avatar mini" [src]="comentario.autor?.imagenUrl" alt="" />
+                  } @else {
+                    <span class="avatar mini">{{ iniciales(comentario.autor) }}</span>
+                  }
+                  <div>
+                    <span class="autor-comentario">{{ comentario.autor?.nombre ?? 'Usuario eliminado' }}</span>
+                    {{ comentario.mensaje }}
+                    @if (comentario.modificado) {
+                      <span class="editado">(editado)</span>
+                    }
+                  </div>
+                </div>
+              } @empty {
+                <div class="comentario sin-comentarios">Todavía no hay comentarios.</div>
+              }
+              @if (comentariosRestantes(publicacion) > 0) {
+                <div class="mas-comentarios">
+                  y {{ comentariosRestantes(publicacion) }}
+                  {{ comentariosRestantes(publicacion) === 1 ? 'comentario más' : 'comentarios más' }}
+                </div>
+              }
+            </article>
+          } @empty {
+            <div class="tarjeta vacio ancho-completo">
+              <p>Todavía no publicaste nada.</p>
+              <a mat-flat-button routerLink="/crear-publicacion">Crear publicación</a>
+            </div>
+          }
+        </div>
+      }
     </section>
   } @else {
     <section class="tarjeta vacio">

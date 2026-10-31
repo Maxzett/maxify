@@ -46,9 +46,16 @@ src/
 ├── main.ts                 ValidationPipe global + CORS (FRONTEND_ORIGIN)
 ├── app.module.ts           Carga el .env con loadEnvFile y conecta Mongo
 ├── auth/                   Registro y login (bcrypt + JWT)
-│   └── dto/                RegistroDto, LoginDto (class-validator)
+│   ├── dto/                RegistroDto, LoginDto (class-validator)
+│   ├── jwt-auth.guard.ts   Guard global: exige el token en todas las rutas
+│   ├── publico.decorator.ts        @Publico() para login, registro y health check
+│   └── usuario-actual.decorator.ts @UsuarioActual() lee el usuario del token
 ├── usuarios/               Esquema Usuario + UsuariosService (presentar())
-├── publicaciones/          Esquema Publicacion + listado inicial
+├── publicaciones/          Publicaciones, me gusta y (lectura de) comentarios
+│   ├── dto/                CrearPublicacionDto, ListarPublicacionesDto
+│   ├── publicacion.schema.ts   titulo, mensaje, imagen, autor, likesCount, eliminada
+│   ├── like.schema.ts          un documento por "me gusta" (índice único)
+│   └── comentario.schema.ts    esquema mínimo (el controller llega en el Sprint 3)
 └── imagenes/               ImagenesService: Multer → Sharp (WebP) → Cloudinary
 ```
 
@@ -58,11 +65,25 @@ src/
 |---|---|---|
 | `POST` | `/auth/registro` (multipart, campo `foto` opcional) | **201** `{ token, usuario }` · 400 datos inválidos · 409 correo o usuario repetido |
 | `POST` | `/auth/login` (`{ identificador, password }`) | **200** `{ token, usuario }` · 400 datos faltantes · 401 credenciales incorrectas · 403 cuenta deshabilitada |
-| `GET` | `/publicaciones` | **200** últimas publicaciones activas |
 | `GET` | `/` | **200** estado de la API (health check de Render) |
 
 `identificador` puede ser el **correo o el nombre de usuario** (los dos son únicos).
 La respuesta nunca incluye la contraseña ni el `_id` crudo de Mongo.
+
+**Endpoints del Sprint 2** (todos con `Authorization: Bearer <token>`; sin token o con token vencido → **401**)
+
+| Método | Ruta | Respuesta |
+|---|---|---|
+| `POST` | `/publicaciones` (multipart: `titulo`, `mensaje`, archivo `imagen` opcional) | **201** la publicación creada a nombre del usuario del token · 400 datos o imagen inválidos |
+| `GET` | `/publicaciones?orden=fecha\|likes&usuario=<id>&offset=0&limit=5` | **200** `{ publicaciones, total }` · 400 parámetros inválidos |
+| `DELETE` | `/publicaciones/:id` | **204** baja lógica · 403 no es el autor ni administrador · 404 no existe |
+| `POST` | `/publicaciones/:id/like` | **201** `{ likesCount, meGusta: true }` · 404 no existe · 409 ya le había dado me gusta |
+| `DELETE` | `/publicaciones/:id/like` | **200** `{ likesCount, meGusta: false }` · 404 no le había dado me gusta |
+
+- `orden` por defecto es `fecha` (más nuevas primero); con `likes` ordena por cantidad de me gusta y desempata por fecha.
+- `limit` va de 1 a 20 (por defecto 5) y `offset` indica cuántas saltear: el front pide `offset` = las que ya tiene.
+- Cada publicación trae `meGusta` (si el usuario del token le dio me gusta) y `comentariosCount`.
+- `comentarios=N` (0 a 10) agrega a cada publicación sus últimos N comentarios. Lo usa Mi perfil.
 
 ### Frontend (`/frontend`)
 
@@ -70,18 +91,20 @@ La respuesta nunca incluye la contraseña ni el `_id` crudo de Mongo.
 src/app/
 ├── core/
 │   ├── models/             Interfaces Usuario, Sesion, Publicacion
+│   ├── interceptors/       authInterceptor (token en cada pedido, 401 → login)
 │   ├── services/           AuthService, PublicacionesService, NotificacionesService
-│   └── validators/         passwordSegura, passwordsIguales, edadMinima
+│   └── validators/         passwordSegura, passwordsIguales, edadMinima, errorDeImagen
 ├── features/
 │   ├── auth/login/         Login (correo o usuario)
 │   ├── auth/registro/      Registro con foto de perfil
-│   ├── publicaciones/      Feed
-│   └── perfil/             Mi perfil
+│   ├── publicaciones/      Feed (orden, "Ver más", me gusta, eliminar)
+│   ├── crear-publicacion/  Formulario con imagen opcional
+│   └── perfil/             Mi perfil con las últimas 3 publicaciones
 ├── layout/header/          Navbar
-└── shared/components/      Dialogo (MatDialog), PublicacionCard
+└── shared/components/      Dialogo (MatDialog), PublicacionCard (input/output)
 ```
 
-Rutas: `/login`, `/registro`, `/publicaciones`, `/perfil`, todas con `loadComponent` (lazy loading).
+Rutas: `/login`, `/registro`, `/publicaciones`, `/crear-publicacion`, `/perfil`, todas con `loadComponent` (lazy loading).
 
 ---
 
@@ -103,6 +126,24 @@ npm start                   # http://localhost:4200
 ```
 
 Sin credenciales de Cloudinary el registro funciona igual **sin foto**; si se manda una foto, la API responde 503 ("Falta configurar Cloudinary").
+
+### Datos de prueba (seed)
+
+Para probar sin crear usuarios a mano, con `MONGODB_URI` apuntando a un MongoDB **local** (por ejemplo `mongodb://127.0.0.1:27017/maxify_dev`):
+
+```bash
+cd backend
+npm run seed
+```
+
+Borra y vuelve a cargar usuarios, publicaciones, me gusta y comentarios (se puede correr las veces que haga falta). Por seguridad **solo corre contra `localhost` / `127.0.0.1`**: si `MONGODB_URI` apunta a Atlas, se niega y no toca nada.
+
+| Usuario | Perfil | Contraseña |
+|---|---|---|
+| `admin` | administrador | `Clave1234` |
+| `lumendez`, `jpereyra`, `anarossi`, `msosa`, `camig` | usuario | `Clave1234` |
+
+Carga 12 publicaciones activas (alcanza para probar "Ver más"), una dada de baja, 22 me gusta y 10 comentarios. `lumendez` tiene comentarios en sus publicaciones para ver Mi perfil completo. Los correos son `<usuario>@maxify.test`.
 
 ### Variables de entorno del backend
 
@@ -168,7 +209,8 @@ Lo que **no** se vio en clase y por qué se usa:
 | Tema | Por qué | Elección |
 |---|---|---|
 | Hash de contraseñas | La consigna pide guardar la contraseña encriptada. | **bcrypt** (10 rondas). Se guarda solo el hash (incluye el salt); en el login se compara con `bcrypt.compare`. |
-| JWT | La consigna exige autenticación propia con token (en clase se usó Supabase Auth). | **@nestjs/jwt**. Login y registro ya devuelven un token con id, correo, usuario y perfil, que vence a los 15 minutos. La validación del token en las rutas protegidas llega en el Sprint 3. |
+| JWT | La consigna exige autenticación propia con token (en clase se usó Supabase Auth). | **@nestjs/jwt**. Login y registro devuelven un token con id, correo, usuario y perfil, que vence a los 15 minutos. Un guard propio (`CanActivate`) registrado como global con `APP_GUARD` valida la firma y el vencimiento en todas las rutas; las públicas se marcan con `@Publico()` (seguro por defecto). El decorador `@UsuarioActual()` entrega el usuario del token al controller. |
+| Interceptor HTTP en Angular | La API necesita saber quién publica o da me gusta. | **`HttpInterceptorFn`** funcional (mismo estilo que los guards de clase): agrega `Authorization: Bearer <token>` a cada pedido y, si la API responde 401 (token vencido), cierra la sesión y vuelve al login. Se adelantó del Sprint 3 porque desde este sprint todas las rutas de publicaciones piden token. |
 | Librería de UI | La consigna pide un diseño trabajado y uniforme y prohíbe `alert()`. | **Angular Material** con tema propio: `MatDialog` para modales, `MatSnackBar` para avisos, `mat-form-field` para formularios y `mat-spinner` para cargas. |
 
 Otras decisiones:
@@ -186,11 +228,23 @@ Otras decisiones:
 - **Modo claro y oscuro automático**: la app sigue la preferencia del sistema operativo o del navegador (`prefers-color-scheme`). Cada token de color tiene su versión oscura (fondo `#1C1917`, acento `#EA7A4B`) y solo se redefinen las variables en `styles.scss`, así ningún componente necesita estilos propios para el modo oscuro.
 - **CORS** restringido a `FRONTEND_ORIGIN` (admite varios orígenes separados por coma).
 
+**Sprint 2 – publicaciones**
+
+- **"Ver más" en lugar de páginas numeradas**: cada carga pide la siguiente con `offset` y `limit` y la agrega debajo. La API devuelve también el `total`, así el front sabe si quedan más. Desde la segunda carga aparece un botón flotante para volver arriba. Si al cambiar el orden había un pedido en curso, se cancela para que no se mezclen las listas.
+- **El orden lo hace el servidor** (`sort` de Mongo), no el front: ordenar en el navegador solo ordenaría lo ya cargado. Se desempata por `_id` para que el orden sea estable entre páginas.
+- **Me gusta en una colección propia** (`likes`) con **índice único** `(usuario, publicacion)`: la base de datos garantiza uno solo por usuario; si se repite, Mongo rechaza el alta (error 11000) y la API responde **409**.
+- **Contador `likesCount`** en la publicación, actualizado con `$inc` (atómico, como `reservar()` de clase): ordenar por me gusta es un `sort` simple, sin contar en cada pedido. Al quitar, la condición `likesCount > 0` evita negativos.
+- **Baja lógica** (`eliminada: true`): la publicación deja de listarse pero queda en la base para el historial y las estadísticas. Solo el autor o un administrador (el perfil viaja en el token); si no, **403**. Responde **204** sin contenido, como el `DELETE` visto en clase.
+- **Quitar un me gusta que no existe → 404**: el recurso "me gusta de este usuario" no existe.
+- **Cada publicación es un componente** (`PublicacionCard`): recibe la publicación con `input()` y emite `alternarMeGusta` y `eliminar` con `output()`. La página decide qué hacer: llama a la API y abre el modal de confirmación (sin `alert()`).
+- **Comentarios en Mi perfil**: el controller de comentarios es del Sprint 3, pero el perfil ya tiene que mostrarlos. Se agregó el esquema `Comentario` (colección propia, para poder paginarlos y contarlos por fecha más adelante) y el listado acepta `comentarios=N` para traer los últimos N de cada publicación. La publicación guarda `comentariosCount` con el mismo criterio que `likesCount`.
+- **Referencias con `Schema.Types.ObjectId`**: en `@Prop({ type })` se usa el tipo de esquema de Mongoose y no la clase `Types.ObjectId`; con esta última Mongoose guarda el valor sin convertir ("Mixed") y las búsquedas por id no coinciden.
+
 ---
 
 ## Estado por sprint
 
 - [x] **Sprint 1**: proyectos, registro, login, navegación, favicon, pantallas base de Publicaciones y Mi perfil, configuración de deploy.
-- [ ] **Sprint 2**: crear y listar publicaciones con orden y "Ver más", me gusta, Mi perfil con las últimas publicaciones.
+- [x] **Sprint 2**: crear publicaciones con imagen opcional, listado con orden y "Ver más", dar y quitar me gusta, eliminar las propias (baja lógica), Mi perfil con las últimas 3 publicaciones y sus comentarios.
 - [ ] **Sprint 3**: comentarios, validación del token, pantalla Cargando, sesión de 10 minutos con modal para extenderla.
 - [ ] **Sprint 4**: administración de usuarios, estadísticas, PWA, pipes y directivas propias.

@@ -47,7 +47,7 @@ export class AuthService {
     this.usuarioSignal.set(null);
   }
 
-  // El token se va a enviar en el header Authorization a partir del Sprint 3.
+  // El authInterceptor lo envía en el header Authorization.
   get token(): string | null {
     return localStorage.getItem(CLAVE_TOKEN);
   }

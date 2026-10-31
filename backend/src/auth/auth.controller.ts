@@ -13,7 +13,10 @@ import { MAX_IMAGEN_BYTES } from '../imagenes/imagenes.service';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegistroDto } from './dto/registro.dto';
+import { Publico } from './publico.decorator';
 
+// Registro y login no piden token (todavía no lo tiene el usuario).
+@Publico()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
