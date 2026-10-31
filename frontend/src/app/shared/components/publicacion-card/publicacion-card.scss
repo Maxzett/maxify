@@ -8,6 +8,7 @@
     margin: 0 0 6px;
     font-size: 22px;
     line-height: 1.25;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -44,6 +45,7 @@
   line-height: 1.6;
   color: var(--color-texto-2);
   white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .imagen {
@@ -57,16 +59,40 @@
 .pie {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 4px;
   border-top: 1px solid var(--color-borde);
-  padding-top: 10px;
+  padding-top: 8px;
+  margin: 0 -6px;
 }
 
-.dato {
+// Botones "fantasma" del boceto: sin borde, con fondo suave al pasar el mouse.
+.accion {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: 500 13px var(--fuente);
   color: var(--color-texto-2);
+  cursor: pointer;
+
+  &:hover:not(:disabled):not(.dato) {
+    background: var(--color-superficie-2);
+  }
+  &:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+  &.activo {
+    color: var(--color-acento);
+  }
+  &.eliminar {
+    color: var(--color-error);
+  }
+  &.dato {
+    cursor: default;
+  }
 }

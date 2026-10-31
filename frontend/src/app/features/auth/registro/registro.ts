@@ -11,12 +11,11 @@ import { NotificacionesService } from '../../../core/services/notificaciones.ser
 import {
   RepetirPasswordMatcher,
   edadMinima,
+  errorDeImagen,
   passwordSegura,
   passwordsIguales,
 } from '../../../core/validators/validadores';
 
-const TIPOS_FOTO = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_FOTO_BYTES = 5 * 1024 * 1024;
 export const MAX_DESCRIPCION = 200;
 
 @Component({
@@ -73,15 +72,9 @@ export class Registro {
     input.value = ''; // permite volver a elegir el mismo archivo
     if (!archivo) return;
 
-    if (!TIPOS_FOTO.includes(archivo.type)) {
-      this.errorFoto.set('Elegí una imagen JPG, PNG o WebP.');
-      return;
-    }
-    if (archivo.size > MAX_FOTO_BYTES) {
-      this.errorFoto.set('La imagen puede pesar hasta 5 MB.');
-      return;
-    }
-    this.errorFoto.set(null);
+    const error = errorDeImagen(archivo);
+    this.errorFoto.set(error);
+    if (error) return;
     this.liberarVistaPrevia();
     this.foto.set(archivo);
     this.vistaPrevia.set(URL.createObjectURL(archivo));
