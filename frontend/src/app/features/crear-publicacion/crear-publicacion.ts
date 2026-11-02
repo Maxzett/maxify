@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { PublicacionesService } from '../../core/services/publicaciones.service';
+import { TIPOS_ACEPTADOS, prepararImagen } from '../../core/utils/imagen';
 import { errorDeImagen } from '../../core/validators/validadores';
 
 // Mismos límites que valida el backend (CrearPublicacionDto).
@@ -37,6 +38,7 @@ export class CrearPublicacion {
 
   readonly maxTitulo = MAX_TITULO;
   readonly maxMensaje = MAX_MENSAJE;
+  readonly tiposImagen = TIPOS_ACEPTADOS;
 
   form = this.fb.nonNullable.group({
     titulo: ['', [Validators.required, Validators.maxLength(MAX_TITULO), Validators.pattern(NO_VACIO)]],
@@ -48,6 +50,8 @@ export class CrearPublicacion {
   vistaPrevia = signal<string | null>(null);
   errorImagen = signal<string | null>(null);
   arrastrando = signal(false);
+  // true mientras se convierte una foto HEIC del iPhone a JPG.
+  procesandoImagen = signal(false);
   cargando = signal(false);
 
   constructor() {
@@ -59,7 +63,7 @@ export class CrearPublicacion {
     const input = evento.target as HTMLInputElement;
     const archivo = input.files?.[0];
     input.value = ''; // permite volver a elegir el mismo archivo
-    if (archivo) this.usarImagen(archivo);
+    if (archivo) void this.usarImagen(archivo);
   }
 
   // Arrastrar y soltar sobre el recuadro de la imagen.
@@ -72,7 +76,7 @@ export class CrearPublicacion {
     evento.preventDefault();
     this.arrastrando.set(false);
     const archivo = evento.dataTransfer?.files[0];
-    if (archivo) this.usarImagen(archivo);
+    if (archivo) void this.usarImagen(archivo);
   }
 
   quitarImagen(): void {
@@ -86,6 +90,7 @@ export class CrearPublicacion {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.procesandoImagen()) return;
     this.cargando.set(true);
 
     // multipart/form-data: título, mensaje y el archivo "imagen".
@@ -109,7 +114,20 @@ export class CrearPublicacion {
     });
   }
 
-  private usarImagen(archivo: File): void {
+  // Las fotos HEIC se convierten a JPG antes de validarlas y mostrarlas.
+  private async usarImagen(elegido: File): Promise<void> {
+    this.procesandoImagen.set(true);
+    this.errorImagen.set(null);
+    let archivo: File;
+    try {
+      archivo = await prepararImagen(elegido);
+    } catch (error) {
+      this.errorImagen.set((error as Error).message);
+      return;
+    } finally {
+      this.procesandoImagen.set(false);
+    }
+
     const error = errorDeImagen(archivo);
     this.errorImagen.set(error);
     if (error) return;
