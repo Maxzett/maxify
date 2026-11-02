@@ -23,15 +23,17 @@
             <label class="boton-contorno" for="foto">
               {{ foto() ? 'Cambiar foto' : 'Subir foto de perfil' }}
             </label>
-            <input id="foto" type="file" accept="image/jpeg,image/png,image/webp" (change)="elegirFoto($event)" hidden />
+            <input id="foto" type="file" [accept]="tiposFoto" (change)="elegirFoto($event)" hidden />
             @if (foto()) {
               <button mat-button type="button" (click)="quitarFoto()">Quitar</button>
             }
           </div>
-          @if (errorFoto()) {
+          @if (procesandoFoto()) {
+            <p class="texto-ayuda" role="status">Procesando imagen…</p>
+          } @else if (errorFoto()) {
             <p class="texto-error" role="alert">{{ errorFoto() }}</p>
           } @else {
-            <p class="texto-ayuda">JPG, PNG o WebP. Máximo 5 MB.</p>
+            <p class="texto-ayuda">JPG, PNG, WebP o HEIC (iPhone). Máximo 5 MB.</p>
           }
         </div>
       </div>
@@ -144,7 +146,7 @@
 
       <div class="acciones">
         <a mat-stroked-button routerLink="/login">Cancelar</a>
-        <button mat-flat-button type="submit" [disabled]="cargando()">
+        <button mat-flat-button type="submit" [disabled]="cargando() || procesandoFoto()">
           @if (cargando()) {
             <mat-spinner diameter="20" aria-label="Creando cuenta" />
           } @else {

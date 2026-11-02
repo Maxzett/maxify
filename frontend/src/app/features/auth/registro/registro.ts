@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
+import { TIPOS_ACEPTADOS, prepararImagen } from '../../../core/utils/imagen';
 import {
   RepetirPasswordMatcher,
   edadMinima,
@@ -38,6 +39,7 @@ export class Registro {
   private router = inject(Router);
 
   readonly maxDescripcion = MAX_DESCRIPCION;
+  readonly tiposFoto = TIPOS_ACEPTADOS;
   readonly repetirMatcher = new RepetirPasswordMatcher();
   readonly hoy = new Date().toISOString().slice(0, 10);
 
@@ -59,6 +61,8 @@ export class Registro {
   foto = signal<File | null>(null);
   vistaPrevia = signal<string | null>(null);
   errorFoto = signal<string | null>(null);
+  // true mientras se convierte una foto HEIC del iPhone a JPG.
+  procesandoFoto = signal(false);
   cargando = signal(false);
 
   constructor() {
@@ -66,11 +70,24 @@ export class Registro {
     inject(DestroyRef).onDestroy(() => this.liberarVistaPrevia());
   }
 
-  elegirFoto(evento: Event): void {
+  async elegirFoto(evento: Event): Promise<void> {
     const input = evento.target as HTMLInputElement;
-    const archivo = input.files?.[0];
+    const elegido = input.files?.[0];
     input.value = ''; // permite volver a elegir el mismo archivo
-    if (!archivo) return;
+    if (!elegido) return;
+
+    // Las fotos HEIC se convierten a JPG antes de validarlas y subirlas.
+    this.procesandoFoto.set(true);
+    this.errorFoto.set(null);
+    let archivo: File;
+    try {
+      archivo = await prepararImagen(elegido);
+    } catch (error) {
+      this.errorFoto.set((error as Error).message);
+      return;
+    } finally {
+      this.procesandoFoto.set(false);
+    }
 
     const error = errorDeImagen(archivo);
     this.errorFoto.set(error);
@@ -91,6 +108,7 @@ export class Registro {
       this.notificaciones.error('Revisá los campos marcados en rojo.');
       return;
     }
+    if (this.procesandoFoto()) return;
     this.cargando.set(true);
 
     // multipart/form-data: los campos de texto + el archivo "foto".
