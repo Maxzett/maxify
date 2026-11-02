@@ -41,6 +41,12 @@
   }
 }
 
+.boton-crear.activo {
+  box-shadow:
+    0 0 0 2px var(--color-superficie),
+    0 0 0 4px var(--color-texto);
+}
+
 .boton-admin {
   display: inline-flex;
   align-items: center;

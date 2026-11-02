@@ -3,10 +3,11 @@
     <a class="logo" routerLink="/publicaciones">Maxify</a>
 
     @if (auth.logueado()) {
-      <!-- La pantalla de crear publicación se agrega en el Sprint 2 -->
       <a
         class="boton-crear"
         routerLink="/crear-publicacion"
+        routerLinkActive="activo"
+        ariaCurrentWhenActive="page"
         aria-label="Crear publicación"
         title="Crear publicación"
       >

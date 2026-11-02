@@ -14,6 +14,17 @@
         <div class="meta">{{ publicacion().creadaEn | date: 'd MMM, HH:mm' }}</div>
       }
     </div>
+    @if (puedeEliminar()) {
+      <button
+        type="button"
+        class="accion eliminar"
+        (click)="eliminar.emit()"
+        aria-label="Eliminar publicación"
+        title="Eliminar publicación"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg>
+      </button>
+    }
   </div>
 
   <div>
@@ -22,17 +33,26 @@
   </div>
 
   @if (publicacion().imagenUrl) {
-    <img class="imagen" [src]="publicacion().imagenUrl" [alt]="publicacion().titulo" />
+    <img class="imagen" [src]="publicacion().imagenUrl" [alt]="publicacion().titulo" loading="lazy" />
   }
 
   <div class="pie">
-    <span class="dato">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+    <button
+      type="button"
+      class="accion"
+      [class.activo]="publicacion().meGusta"
+      [attr.aria-pressed]="publicacion().meGusta"
+      [disabled]="procesando()"
+      (click)="alternarMeGusta.emit()"
+      [title]="publicacion().meGusta ? 'Quitar me gusta' : 'Me gusta'"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" [attr.fill]="publicacion().meGusta ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
       {{ publicacion().likesCount }} Me gusta
-    </span>
-    <span class="dato">
+    </button>
+    <!-- El detalle con los comentarios se agrega en el Sprint 3 -->
+    <span class="accion dato">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>
-      Comentarios
+      {{ publicacion().comentariosCount }} {{ publicacion().comentariosCount === 1 ? 'comentario' : 'comentarios' }}
     </span>
   </div>
 </article>
