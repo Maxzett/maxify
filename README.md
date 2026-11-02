@@ -93,6 +93,7 @@ src/app/
 │   ├── models/             Interfaces Usuario, Sesion, Publicacion
 │   ├── interceptors/       authInterceptor (token en cada pedido, 401 → login)
 │   ├── services/           AuthService, PublicacionesService, NotificacionesService
+│   ├── utils/              prepararImagen (fotos HEIC del iPhone → JPG)
 │   └── validators/         passwordSegura, passwordsIguales, edadMinima, errorDeImagen
 ├── features/
 │   ├── auth/login/         Login (correo o usuario)
@@ -211,6 +212,7 @@ Lo que **no** se vio en clase y por qué se usa:
 | Hash de contraseñas | La consigna pide guardar la contraseña encriptada. | **bcrypt** (10 rondas). Se guarda solo el hash (incluye el salt); en el login se compara con `bcrypt.compare`. |
 | JWT | La consigna exige autenticación propia con token (en clase se usó Supabase Auth). | **@nestjs/jwt**. Login y registro devuelven un token con id, correo, usuario y perfil, que vence a los 15 minutos. Un guard propio (`CanActivate`) registrado como global con `APP_GUARD` valida la firma y el vencimiento en todas las rutas; las públicas se marcan con `@Publico()` (seguro por defecto). El decorador `@UsuarioActual()` entrega el usuario del token al controller. |
 | Interceptor HTTP en Angular | La API necesita saber quién publica o da me gusta. | **`HttpInterceptorFn`** funcional (mismo estilo que los guards de clase): agrega `Authorization: Bearer <token>` a cada pedido y, si la API responde 401 (token vencido), cierra la sesión y vuelve al login. Se adelantó del Sprint 3 porque desde este sprint todas las rutas de publicaciones piden token. |
+| API de Canvas del navegador | El iPhone saca las fotos en HEIC y el backend solo acepta JPEG, PNG o WebP (Sharp no lee HEIC por las patentes del formato). | `prepararImagen()`: si la foto es HEIC, el navegador la decodifica con `createImageBitmap`, la dibuja en un `<canvas>` achicada a 1600 px y la exporta como JPG con `toBlob`. Sin librerías; Safari (iPhone, iPad y Mac) lee HEIC, y en los navegadores que no pueden se muestra un mensaje claro. El backend no cambia. |
 | Librería de UI | La consigna pide un diseño trabajado y uniforme y prohíbe `alert()`. | **Angular Material** con tema propio: `MatDialog` para modales, `MatSnackBar` para avisos, `mat-form-field` para formularios y `mat-spinner` para cargas. |
 
 Otras decisiones:
