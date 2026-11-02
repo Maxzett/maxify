@@ -1,8 +1,9 @@
 import { Routes } from '@angular/router';
 
 // Todas las páginas se cargan con lazy loading (loadComponent).
-// En el Sprint 1 todavía no hay restricciones de acceso: los guards
-// (authGuard, adminGuard, guestGuard) se agregan en el Sprint 3.
+// Todavía no hay guards de ruta (authGuard, adminGuard, guestGuard: Sprint 3).
+// Mientras tanto la API exige token y, si responde 401, el authInterceptor
+// cierra la sesión y lleva al login.
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
@@ -24,6 +25,12 @@ export const routes: Routes = [
       import('./features/publicaciones/publicaciones').then(
         (c) => c.Publicaciones,
       ),
+  },
+  {
+    path: 'crear-publicacion',
+    title: 'Crear publicación · Maxify',
+    loadComponent: () =>
+      import('./features/crear-publicacion/crear-publicacion').then((c) => c.CrearPublicacion),
   },
   {
     path: 'perfil',

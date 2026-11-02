@@ -40,3 +40,15 @@ export class RepetirPasswordMatcher implements ErrorStateMatcher {
     return tocado && (!!control?.invalid || !!form?.hasError('passwordsDistintas'));
   }
 }
+
+// Imagen elegida en un input file (foto de perfil o de una publicación).
+// Devuelve el mensaje de error o null si es válida. El servidor vuelve a
+// validarla por su contenido; esto solo da un aviso inmediato.
+export const TIPOS_IMAGEN = ['image/jpeg', 'image/png', 'image/webp'];
+export const MAX_IMAGEN_BYTES = 5 * 1024 * 1024;
+
+export function errorDeImagen(archivo: File): string | null {
+  if (!TIPOS_IMAGEN.includes(archivo.type)) return 'Elegí una imagen JPG, PNG o WebP.';
+  if (archivo.size > MAX_IMAGEN_BYTES) return 'La imagen puede pesar hasta 5 MB.';
+  return null;
+}

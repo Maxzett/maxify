@@ -2,10 +2,20 @@
   <div class="encabezado">
     <h1>Publicaciones</h1>
     <div class="segmentado" role="group" aria-label="Ordenar publicaciones">
-      <button type="button" [class.activo]="orden() === 'fecha'" [attr.aria-pressed]="orden() === 'fecha'" (click)="orden.set('fecha')">
+      <button
+        type="button"
+        [class.activo]="servicio.orden() === 'fecha'"
+        [attr.aria-pressed]="servicio.orden() === 'fecha'"
+        (click)="cambiarOrden('fecha')"
+      >
         Más recientes
       </button>
-      <button type="button" [class.activo]="orden() === 'likes'" [attr.aria-pressed]="orden() === 'likes'" (click)="orden.set('likes')">
+      <button
+        type="button"
+        [class.activo]="servicio.orden() === 'likes'"
+        [attr.aria-pressed]="servicio.orden() === 'likes'"
+        (click)="cambiarOrden('likes')"
+      >
         Más gustadas
       </button>
     </div>
@@ -21,13 +31,42 @@
       <button mat-stroked-button type="button" (click)="servicio.cargar()">Reintentar</button>
     </div>
   } @else {
-    @for (publicacion of ordenadas(); track publicacion.id) {
-      <app-publicacion-card [publicacion]="publicacion" />
+    @for (publicacion of servicio.publicaciones(); track publicacion.id) {
+      <app-publicacion-card
+        [publicacion]="publicacion"
+        [puedeEliminar]="esPropia(publicacion)"
+        [procesando]="estaProcesando(publicacion)"
+        (alternarMeGusta)="alternarMeGusta(publicacion)"
+        (eliminar)="eliminar(publicacion)"
+      />
     } @empty {
       <div class="tarjeta estado">
         <h2>Todavía no hay publicaciones</h2>
         <p>Cuando alguien publique algo, lo vas a ver acá.</p>
       </div>
     }
+
+    @if (servicio.publicaciones().length) {
+      <div class="mas">
+        @if (servicio.hayMas()) {
+          <button mat-stroked-button type="button" class="boton-mas" (click)="verMas()" [disabled]="servicio.cargandoMas()">
+            @if (servicio.cargandoMas()) {
+              <mat-spinner diameter="20" aria-label="Cargando más publicaciones" />
+            } @else {
+              Ver más
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+            }
+          </button>
+        } @else {
+          <p class="fin">Llegaste al final. No hay más publicaciones.</p>
+        }
+      </div>
+    }
   }
 </div>
+
+@if (mostrarVolverArriba()) {
+  <button type="button" class="volver-arriba" (click)="volverArriba()" aria-label="Volver arriba" title="Volver arriba">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"></path></svg>
+  </button>
+}
