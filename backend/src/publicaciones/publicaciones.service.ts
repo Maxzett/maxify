@@ -11,13 +11,12 @@ import type { SortOrder } from 'mongoose';
 import type { UsuarioToken } from '../auth/usuario-token';
 import { ImagenesService } from '../imagenes/imagenes.service';
 import type { UsuarioDocument } from '../usuarios/usuario.schema';
-import { ComentarioMongo } from './comentario.schema';
+import { ComentariosService } from './comentarios.service';
 import { CrearPublicacionDto } from './dto/crear-publicacion.dto';
 import { ListarPublicacionesDto } from './dto/listar-publicaciones.dto';
 import { LikeMongo } from './like.schema';
+import { presentarAutor } from './presentar-autor';
 import type {
-  AutorResumen,
-  Comentario,
   EstadoMeGusta,
   PaginaPublicaciones,
   Publicacion,
@@ -30,12 +29,6 @@ type PublicacionConAutor = Omit<PublicacionMongo, 'autor'> & {
   autor: UsuarioDocument | null;
 };
 
-// Comentario con el autor ya cargado por populate().
-type ComentarioConAutor = Omit<ComentarioMongo, 'autor'> & {
-  _id: Types.ObjectId;
-  autor: UsuarioDocument | null;
-};
-
 @Injectable()
 export class PublicacionesService {
   constructor(
@@ -43,8 +36,7 @@ export class PublicacionesService {
     private readonly modelo: Model<PublicacionMongo>,
     @InjectModel(LikeMongo.name)
     private readonly likes: Model<LikeMongo>,
-    @InjectModel(ComentarioMongo.name)
-    private readonly comentarios: Model<ComentarioMongo>,
+    private readonly comentarios: ComentariosService,
     private readonly imagenes: ImagenesService,
   ) {}
 
@@ -116,7 +108,7 @@ export class PublicacionesService {
 
     const comentarios =
       filtros.comentarios > 0
-        ? await this.ultimosComentarios(ids, filtros.comentarios)
+        ? await this.comentarios.ultimosPorPublicacion(ids, filtros.comentarios)
         : undefined;
 
     return {
@@ -128,6 +120,16 @@ export class PublicacionesService {
       }),
       total,
     };
+  }
+
+  // Detalle de una publicación activa (página Publicación).
+  async obtener(id: string, usuario: UsuarioToken): Promise<Publicacion> {
+    const publicacion = await this.buscarActiva(id);
+    const [conAutor, meGusta] = await Promise.all([
+      publicacion.populate<{ autor: UsuarioDocument | null }>('autor'),
+      this.likes.exists({ usuario: usuario.sub, publicacion: id }),
+    ]);
+    return this.presentar(conAutor, meGusta !== null);
   }
 
   // Baja lógica: solo el autor o un administrador.
@@ -193,27 +195,6 @@ export class PublicacionesService {
     return publicacion;
   }
 
-  // Devuelve, por id de publicación, sus últimos "cantidad" comentarios.
-  private async ultimosComentarios(
-    ids: Types.ObjectId[],
-    cantidad: number,
-  ): Promise<Map<string, Comentario[]>> {
-    const todos = await this.comentarios
-      .find({ publicacion: { $in: ids } })
-      .sort({ createdAt: -1 })
-      .populate<{ autor: UsuarioDocument | null }>('autor')
-      .exec();
-    const porPublicacion = new Map<string, Comentario[]>();
-    for (const comentario of todos) {
-      const clave = comentario.publicacion.toString();
-      const lista = porPublicacion.get(clave) ?? [];
-      if (lista.length < cantidad)
-        lista.push(this.presentarComentario(comentario));
-      porPublicacion.set(clave, lista);
-    }
-    return porPublicacion;
-  }
-
   private presentar(
     publicacion: PublicacionConAutor,
     meGusta: boolean,
@@ -223,33 +204,11 @@ export class PublicacionesService {
       titulo: publicacion.titulo,
       mensaje: publicacion.mensaje,
       imagenUrl: publicacion.imagenUrl,
-      autor: this.presentarAutor(publicacion.autor),
+      autor: presentarAutor(publicacion.autor),
       likesCount: publicacion.likesCount,
       comentariosCount: publicacion.comentariosCount ?? 0,
       meGusta,
       creadaEn: publicacion.createdAt.toISOString(),
     };
-  }
-
-  private presentarComentario(comentario: ComentarioConAutor): Comentario {
-    return {
-      id: comentario._id.toString(),
-      mensaje: comentario.mensaje,
-      autor: this.presentarAutor(comentario.autor),
-      modificado: comentario.modificado,
-      creadoEn: comentario.createdAt.toISOString(),
-    };
-  }
-
-  private presentarAutor(autor: UsuarioDocument | null): AutorResumen | null {
-    return autor
-      ? {
-          id: autor._id.toString(),
-          nombre: autor.nombre,
-          apellido: autor.apellido,
-          username: autor.username,
-          imagenUrl: autor.imagenUrl,
-        }
-      : null;
   }
 }

@@ -19,6 +19,11 @@ export interface Sesion {
   usuario: Usuario;
 }
 
+// Respuesta de /auth/refrescar.
+export interface TokenRefrescado {
+  token: string;
+}
+
 const RONDAS_BCRYPT = 10;
 const EDAD_MINIMA = 13;
 
@@ -82,6 +87,29 @@ export class AuthService {
       throw new ForbiddenException('Tu cuenta fue deshabilitada');
     const usuario = this.usuarios.presentar(documento);
     return { token: this.firmarToken(usuario), usuario };
+  }
+
+  // El guard ya validó firma y vencimiento; además se comprueba que la cuenta
+  // siga existiendo y habilitada (pudo cambiar después de emitir el token).
+  async autorizar(token: UsuarioToken): Promise<Usuario> {
+    const documento = await this.usuarios.buscarPorId(token.sub);
+    if (!documento) throw new UnauthorizedException('La cuenta ya no existe');
+    if (!documento.activo)
+      throw new ForbiddenException('Tu cuenta fue deshabilitada');
+    return this.usuarios.presentar(documento);
+  }
+
+  // Mismo payload (identidad y rol) firmado de nuevo: otros 15 minutos.
+  // Se arma explícitamente para no copiar iat/exp del token anterior.
+  async refrescar(token: UsuarioToken): Promise<TokenRefrescado> {
+    await this.autorizar(token);
+    const payload: UsuarioToken = {
+      sub: token.sub,
+      correo: token.correo,
+      username: token.username,
+      perfil: token.perfil,
+    };
+    return { token: this.jwt.sign(payload) };
   }
 
   // El token lleva la identidad y el rol; vence a los 15 minutos (JwtModule).
