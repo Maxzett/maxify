@@ -79,6 +79,11 @@ export class PublicacionesService {
     );
   }
 
+  // Detalle de una publicación (página Publicación). No toca el estado del feed.
+  obtener(id: string): Observable<Publicacion> {
+    return this.http.get<Publicacion>(`${this.url}/${id}`);
+  }
+
   // FormData porque puede incluir la imagen (multipart/form-data).
   // Al volver al feed se muestra por fecha, así la nueva queda primera.
   crear(datos: FormData): Observable<Publicacion> {

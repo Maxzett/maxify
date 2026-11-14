@@ -1,0 +1,111 @@
+<section class="tarjeta seccion" aria-labelledby="titulo-comentarios">
+  <h2 id="titulo-comentarios">Comentarios</h2>
+
+  <form class="nuevo" [formGroup]="form" #formulario="ngForm" (ngSubmit)="comentar(formulario)" novalidate>
+    <mat-form-field class="campo">
+      <mat-label>Escribí un comentario</mat-label>
+      <textarea matInput formControlName="mensaje" rows="2"></textarea>
+      <mat-hint align="end">{{ form.controls.mensaje.value.length }} / {{ maxComentario }}</mat-hint>
+      @if (form.controls.mensaje.hasError('required') || form.controls.mensaje.hasError('pattern')) {
+        <mat-error>Escribí algo antes de comentar.</mat-error>
+      } @else if (form.controls.mensaje.hasError('maxlength')) {
+        <mat-error>Puede tener hasta {{ maxComentario }} caracteres.</mat-error>
+      }
+    </mat-form-field>
+    <button mat-flat-button type="submit" class="boton-comentar" [disabled]="enviando()">
+      @if (enviando()) {
+        <mat-spinner diameter="20" aria-label="Publicando comentario" />
+      } @else {
+        Comentar
+      }
+    </button>
+  </form>
+
+  @if (cargando()) {
+    <div class="estado">
+      <mat-spinner diameter="32" aria-label="Cargando comentarios" />
+    </div>
+  } @else if (error()) {
+    <div class="estado">
+      <p>{{ error() }}</p>
+      <button mat-stroked-button type="button" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else {
+    <ul class="lista">
+      @for (comentario of comentarios(); track comentario.id) {
+        <li class="comentario">
+          @if (comentario.autor?.imagenUrl) {
+            <img class="avatar foto" [src]="comentario.autor?.imagenUrl" alt="" />
+          } @else {
+            <span class="avatar foto">{{ iniciales(comentario.autor) }}</span>
+          }
+
+          <div class="cuerpo">
+            <div class="cabecera">
+              <span class="nombre">
+                @if (comentario.autor; as autor) {
+                  {{ autor.nombre }} {{ autor.apellido }}
+                } @else {
+                  Usuario eliminado
+                }
+              </span>
+              <span class="meta">
+                {{ comentario.creadoEn | date: 'd MMM, HH:mm' }}
+                @if (comentario.modificado) {
+                  · <span class="editado">(editado)</span>
+                }
+              </span>
+              @if (esPropio(comentario) && editandoId() !== comentario.id) {
+                <button type="button" class="editar" (click)="empezarEdicion(comentario)" [disabled]="guardando()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg>
+                  Editar
+                </button>
+              }
+            </div>
+
+            @if (editandoId() === comentario.id) {
+              <div class="edicion">
+                <mat-form-field class="campo">
+                  <mat-label>Editar comentario</mat-label>
+                  <textarea matInput [formControl]="edicion" rows="2"></textarea>
+                  <mat-hint align="end">{{ edicion.value.length }} / {{ maxComentario }}</mat-hint>
+                  @if (edicion.hasError('required') || edicion.hasError('pattern')) {
+                    <mat-error>El comentario no puede quedar vacío.</mat-error>
+                  } @else if (edicion.hasError('maxlength')) {
+                    <mat-error>Puede tener hasta {{ maxComentario }} caracteres.</mat-error>
+                  }
+                </mat-form-field>
+                <div class="acciones-edicion">
+                  <button mat-button type="button" (click)="cancelarEdicion()" [disabled]="guardando()">Cancelar</button>
+                  <button mat-flat-button type="button" (click)="guardarEdicion(comentario)" [disabled]="guardando()">
+                    @if (guardando()) {
+                      <mat-spinner diameter="18" aria-label="Guardando comentario" />
+                    } @else {
+                      Guardar
+                    }
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <p class="mensaje">{{ comentario.mensaje }}</p>
+            }
+          </div>
+        </li>
+      } @empty {
+        <li class="vacio">Todavía no hay comentarios. ¡Escribí el primero!</li>
+      }
+    </ul>
+
+    @if (hayMas()) {
+      <div class="mas">
+        <button mat-stroked-button type="button" class="boton-mas" (click)="cargarMas()" [disabled]="cargandoMas()">
+          @if (cargandoMas()) {
+            <mat-spinner diameter="20" aria-label="Cargando más comentarios" />
+          } @else {
+            Cargar más
+          }
+        </button>
+      </div>
+    }
+  }
+</section>

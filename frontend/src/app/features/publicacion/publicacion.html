@@ -1,0 +1,29 @@
+<div class="contenedor">
+  <a class="volver" routerLink="/publicaciones">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    Volver a publicaciones
+  </a>
+
+  @if (cargando()) {
+    <div class="estado">
+      <mat-spinner diameter="40" aria-label="Cargando publicación" />
+    </div>
+  } @else if (error()) {
+    <div class="tarjeta estado">
+      <h2>No pudimos mostrar la publicación</h2>
+      <p>{{ error() }}</p>
+      <a mat-stroked-button routerLink="/publicaciones">Ir a publicaciones</a>
+    </div>
+  } @else if (publicacion(); as publicacion) {
+    <app-publicacion-card
+      [publicacion]="publicacion"
+      [enlazar]="false"
+      [puedeEliminar]="esPropia()"
+      [procesando]="procesando()"
+      (alternarMeGusta)="alternarMeGusta()"
+      (eliminar)="eliminar()"
+    />
+
+    <app-comentarios [publicacionId]="publicacion.id" (comentarioCreado)="sumarComentario()" />
+  }
+</div>
