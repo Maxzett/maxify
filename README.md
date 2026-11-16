@@ -112,12 +112,12 @@ src/app/
 │   ├── cargando/           Pantalla inicial: valida el token con /auth/autorizar
 │   ├── auth/login/         Login (correo o usuario)
 │   ├── auth/registro/      Registro con foto de perfil
-│   ├── publicaciones/      Feed (orden, "Ver más", me gusta, eliminar)
+│   ├── publicaciones/      Feed (orden, paginación numerada, me gusta, eliminar)
 │   ├── publicacion/        Detalle: publicación grande + Comentarios (escribir, editar, "Cargar más")
 │   ├── crear-publicacion/  Formulario con imagen opcional
 │   └── perfil/             Mi perfil con las últimas 3 publicaciones
 ├── layout/header/          Navbar
-└── shared/components/      Dialogo (MatDialog), PublicacionCard (input/output)
+└── shared/components/      Dialogo (MatDialog), PublicacionCard y Paginacion (input/output)
 ```
 
 Rutas, todas con `loadComponent` (lazy loading):
@@ -165,7 +165,7 @@ Borra y vuelve a cargar usuarios, publicaciones, me gusta y comentarios (se pued
 | `admin` | administrador | `Clave1234` |
 | `lumendez`, `jpereyra`, `anarossi`, `msosa`, `camig` | usuario | `Clave1234` |
 
-Carga 12 publicaciones activas (alcanza para probar "Ver más"), una dada de baja, 22 me gusta y 10 comentarios. `lumendez` tiene comentarios en sus publicaciones para ver Mi perfil completo. Los correos son `<usuario>@maxify.test`.
+Carga 12 publicaciones activas (3 páginas, alcanza para probar la paginación), una dada de baja, 22 me gusta y 10 comentarios. `lumendez` tiene comentarios en sus publicaciones para ver Mi perfil completo. Los correos son `<usuario>@maxify.test`.
 
 ### Variables de entorno del backend
 
@@ -253,7 +253,9 @@ Otras decisiones:
 
 **Sprint 2 – publicaciones**
 
-- **"Ver más" en lugar de páginas numeradas**: cada carga pide la siguiente con `offset` y `limit` y la agrega debajo. La API devuelve también el `total`, así el front sabe si quedan más. Desde la segunda carga aparece un botón flotante para volver arriba. Si al cambiar el orden había un pedido en curso, se cancela para que no se mezclen las listas.
+- **Paginación numerada** (reemplazó al botón "Ver más" original, a pedido): 5 publicaciones por página con « Anterior · 1 … 4 **5** 6 … 12 · Siguiente » y el texto "Mostrando 6–10 de 12 publicaciones". El servidor recorta con `offset = (página − 1) × 5` y `limit = 5`, y devuelve el `total` para calcular cuántas páginas hay. Reglas: "Anterior" y "Siguiente" se deshabilitan en la primera y en la última página; la página actual se resalta y tiene `aria-current="page"`; con más de 7 páginas se abrevia con "…" (siempre se ven la primera, la última, la actual y sus vecinas, y nunca un "…" que reemplace una sola página); con una sola página la barra no se muestra; al cambiar de página se sube al principio de la lista; al cambiar el orden se vuelve a la página 1.
+- **La página y el orden van en la URL** (`/publicaciones?pagina=2&orden=likes`): se conservan al recargar, al volver desde el detalle y con atrás/adelante del navegador. Un valor inválido (`?pagina=abc`) se toma como la página 1 y una página que no existe (`?pagina=99`, o la última se quedó vacía al eliminar) lleva a la última. Si se cambia de página antes de que llegue la respuesta anterior, ese pedido se cancela.
+- **La paginación es un componente reutilizable** (`Paginacion`, en `shared/`): recibe la página actual y el total con `input()` y avisa la elegida con `output()`; la página decide qué cargar.
 - **El orden lo hace el servidor** (`sort` de Mongo), no el front: ordenar en el navegador solo ordenaría lo ya cargado. Se desempata por `_id` para que el orden sea estable entre páginas.
 - **Me gusta en una colección propia** (`likes`) con **índice único** `(usuario, publicacion)`: la base de datos garantiza uno solo por usuario; si se repite, Mongo rechaza el alta (error 11000) y la API responde **409**.
 - **Contador `likesCount`** en la publicación, actualizado con `$inc` (atómico, como `reservar()` de clase): ordenar por me gusta es un `sort` simple, sin contar en cada pedido. Al quitar, la condición `likesCount > 0` evita negativos.
@@ -281,6 +283,6 @@ Otras decisiones:
 ## Estado por sprint
 
 - [x] **Sprint 1**: proyectos, registro, login, navegación, favicon, pantallas base de Publicaciones y Mi perfil, configuración de deploy.
-- [x] **Sprint 2**: crear publicaciones con imagen opcional, listado con orden y "Ver más", dar y quitar me gusta, eliminar las propias (baja lógica), Mi perfil con las últimas 3 publicaciones y sus comentarios.
+- [x] **Sprint 2**: crear publicaciones con imagen opcional, listado con orden y paginación numerada, dar y quitar me gusta, eliminar las propias (baja lógica), Mi perfil con las últimas 3 publicaciones y sus comentarios.
 - [x] **Sprint 3**: página Publicación con comentarios (escribir, editar y "Cargar más"), validación y refresco del token, pantalla Cargando, guards, sesión de 10 minutos con modal para extenderla y redirección al login ante cualquier 401.
 - [ ] **Sprint 4**: administración de usuarios, estadísticas, PWA, pipes y directivas propias.

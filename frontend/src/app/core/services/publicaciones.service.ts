@@ -9,7 +9,7 @@ import {
   Publicacion,
 } from '../models/publicacion.interface';
 
-// Cuántas publicaciones trae cada "Ver más".
+// Cuántas publicaciones se muestran por página.
 export const POR_PAGINA = 5;
 
 // Servicio singleton con el estado del feed: signals privados y computed de
@@ -21,35 +21,38 @@ export class PublicacionesService {
 
   private publicacionesSignal = signal<Publicacion[]>([]);
   private totalSignal = signal(0);
-  private paginasSignal = signal(0);
+  private paginaSignal = signal(1);
   private ordenSignal = signal<Orden>('fecha');
 
   publicaciones = computed(() => this.publicacionesSignal());
   orden = computed(() => this.ordenSignal());
-  paginasCargadas = computed(() => this.paginasSignal());
-  // Quedan más en el servidor si todavía no se cargaron todas.
-  hayMas = computed(() => this.publicacionesSignal().length < this.totalSignal());
+  pagina = computed(() => this.paginaSignal());
+  total = computed(() => this.totalSignal());
+  // Siempre hay al menos una página (aunque esté vacía).
+  totalPaginas = computed(() => Math.max(1, Math.ceil(this.totalSignal() / POR_PAGINA)));
+  // Rango que se está mostrando, para el texto "Mostrando 6–10 de 12".
+  desde = computed(() => (this.totalSignal() ? (this.paginaSignal() - 1) * POR_PAGINA + 1 : 0));
+  hasta = computed(() => this.desde() + this.publicacionesSignal().length - 1);
 
   cargando = signal(false);
-  cargandoMas = signal(false);
   error = signal<string | null>(null);
 
-  // Pedido en curso: si cambia el orden se cancela el anterior, así una
-  // respuesta vieja no se mezcla con la lista nueva.
+  // Pedido en curso: si se cambia de página u orden antes de que responda,
+  // se cancela, así una respuesta vieja no pisa a la nueva.
   private pedido?: Subscription;
 
-  // Primera página con el orden elegido (reemplaza la lista).
-  cargar(orden: Orden = this.ordenSignal()): void {
+  // Carga una página (1 = la primera) con el orden elegido. El servidor
+  // ordena y recorta: offset = (página - 1) × POR_PAGINA.
+  cargar(pagina: number = this.paginaSignal(), orden: Orden = this.ordenSignal()): void {
     this.pedido?.unsubscribe();
+    this.paginaSignal.set(pagina);
     this.ordenSignal.set(orden);
     this.cargando.set(true);
-    this.cargandoMas.set(false);
     this.error.set(null);
-    this.pedido = this.pedirPagina(0).subscribe({
-      next: (pagina) => {
-        this.publicacionesSignal.set(pagina.publicaciones);
-        this.totalSignal.set(pagina.total);
-        this.paginasSignal.set(1);
+    this.pedido = this.pedirPagina((pagina - 1) * POR_PAGINA).subscribe({
+      next: (respuesta) => {
+        this.publicacionesSignal.set(respuesta.publicaciones);
+        this.totalSignal.set(respuesta.total);
         this.cargando.set(false);
       },
       error: () => {
@@ -59,40 +62,20 @@ export class PublicacionesService {
     });
   }
 
-  // "Ver más": pide la página siguiente (offset = las que ya hay) y la agrega abajo.
-  verMas(): Observable<PaginaPublicaciones> {
-    this.cargandoMas.set(true);
-    return this.pedirPagina(this.publicacionesSignal().length).pipe(
-      tap({
-        next: (pagina) => {
-          // Si entre página y página cambió el orden por "me gusta", una
-          // publicación podría repetirse: se agregan solo las nuevas.
-          const ids = new Set(this.publicacionesSignal().map((p) => p.id));
-          const nuevas = pagina.publicaciones.filter((p) => !ids.has(p.id));
-          this.publicacionesSignal.update((lista) => [...lista, ...nuevas]);
-          this.totalSignal.set(pagina.total);
-          this.paginasSignal.update((n) => n + 1);
-          this.cargandoMas.set(false);
-        },
-        error: () => this.cargandoMas.set(false),
-      }),
-    );
-  }
-
   // Detalle de una publicación (página Publicación). No toca el estado del feed.
   obtener(id: string): Observable<Publicacion> {
     return this.http.get<Publicacion>(`${this.url}/${id}`);
   }
 
   // FormData porque puede incluir la imagen (multipart/form-data).
-  // Al volver al feed se muestra por fecha, así la nueva queda primera.
+  // Después se vuelve a /publicaciones (página 1, más recientes): la nueva queda primera.
   crear(datos: FormData): Observable<Publicacion> {
-    return this.http
-      .post<Publicacion>(this.url, datos)
-      .pipe(tap(() => this.ordenSignal.set('fecha')));
+    return this.http.post<Publicacion>(this.url, datos);
   }
 
-  // Baja lógica en el servidor; acá se quita de la lista.
+  // Baja lógica en el servidor. Se quita de la lista al instante y después
+  // la página se vuelve a pedir, así la primera de la página siguiente sube
+  // a ocupar su lugar.
   eliminar(id: string): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`).pipe(
       tap(() => {

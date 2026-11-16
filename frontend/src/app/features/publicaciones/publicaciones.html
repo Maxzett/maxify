@@ -46,27 +46,19 @@
       </div>
     }
 
-    @if (servicio.publicaciones().length) {
-      <div class="mas">
-        @if (servicio.hayMas()) {
-          <button mat-stroked-button type="button" class="boton-mas" (click)="verMas()" [disabled]="servicio.cargandoMas()">
-            @if (servicio.cargandoMas()) {
-              <mat-spinner diameter="20" aria-label="Cargando más publicaciones" />
-            } @else {
-              Ver más
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
-            }
-          </button>
-        } @else {
-          <p class="fin">Llegaste al final. No hay más publicaciones.</p>
-        }
+    <!-- Paginación numerada: solo si hay más de una página -->
+    @if (servicio.totalPaginas() > 1) {
+      <div class="pie-paginacion">
+        <app-paginacion
+          [pagina]="servicio.pagina()"
+          [totalPaginas]="servicio.totalPaginas()"
+          [deshabilitada]="servicio.cargando()"
+          (cambiar)="irAPagina($event)"
+        />
+        <p class="resumen" aria-live="polite">
+          Mostrando {{ servicio.desde() }}–{{ servicio.hasta() }} de {{ servicio.total() }} publicaciones
+        </p>
       </div>
     }
   }
 </div>
-
-@if (mostrarVolverArriba()) {
-  <button type="button" class="volver-arriba" (click)="volverArriba()" aria-label="Volver arriba" title="Volver arriba">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"></path></svg>
-  </button>
-}
