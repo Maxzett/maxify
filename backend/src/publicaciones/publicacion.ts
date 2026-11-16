@@ -36,6 +36,13 @@ export interface PaginaPublicaciones {
   total: number;
 }
 
+// Respuesta de GET /publicaciones/:id/comentarios: una página y el total
+// para saber si mostrar "Cargar más".
+export interface PaginaComentarios {
+  comentarios: Comentario[];
+  total: number;
+}
+
 // Respuesta de dar o quitar "me gusta".
 export interface EstadoMeGusta {
   likesCount: number;

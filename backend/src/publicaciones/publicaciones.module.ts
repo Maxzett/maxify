@@ -3,6 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ImagenesModule } from '../imagenes/imagenes.module';
 import { UsuariosModule } from '../usuarios/usuarios.module';
 import { ComentarioMongo, ComentarioSchema } from './comentario.schema';
+import { ComentariosController } from './comentarios.controller';
+import { ComentariosService } from './comentarios.service';
 import { LikeMongo, LikeSchema } from './like.schema';
 import { PublicacionMongo, PublicacionSchema } from './publicacion.schema';
 import { PublicacionesController } from './publicaciones.controller';
@@ -20,7 +22,7 @@ import { PublicacionesService } from './publicaciones.service';
     // Subida de la imagen de la publicación a Cloudinary.
     ImagenesModule,
   ],
-  controllers: [PublicacionesController],
-  providers: [PublicacionesService],
+  controllers: [PublicacionesController, ComentariosController],
+  providers: [PublicacionesService, ComentariosService],
 })
 export class PublicacionesModule {}

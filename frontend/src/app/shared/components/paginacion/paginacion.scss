@@ -1,0 +1,106 @@
+// Mismo lenguaje visual que el resto de la app: píldoras, borde suave y
+// el acento terracota para la página actual (como el botón "+" del header).
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.numeros {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.numero,
+.extremo {
+  min-height: 40px;
+  border: 1px solid var(--color-borde);
+  background: var(--color-superficie);
+  color: var(--color-texto-2);
+  font: 500 14px var(--fuente);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover:not(:disabled):not(.actual) {
+    background: var(--color-superficie-2);
+    border-color: var(--color-borde-fuerte);
+    color: var(--color-texto);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.45;
+  }
+}
+
+.numero {
+  min-width: 40px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+
+  &.actual {
+    background: var(--color-acento);
+    border-color: var(--color-acento);
+    color: #fff;
+    font-weight: 700;
+    cursor: default;
+  }
+}
+
+.extremo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border-radius: 999px;
+}
+
+.puntos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  color: var(--color-texto-3);
+}
+
+// En pantallas chicas "Anterior" y "Siguiente" quedan solo como flechas.
+@media (max-width: 520px) {
+  .paginacion {
+    gap: 4px;
+  }
+
+  .texto-extremo {
+    display: none;
+  }
+
+  .extremo {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .numero {
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+
+  .extremo {
+    min-height: 36px;
+    width: 36px;
+  }
+}

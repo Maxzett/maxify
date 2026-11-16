@@ -1,0 +1,10 @@
+<div class="pantalla">
+  <span class="logo">Maxify</span>
+  @if (sinConexion()) {
+    <p class="texto" role="alert">No pudimos conectarnos con el servidor.</p>
+    <button mat-flat-button type="button" (click)="validar()">Reintentar</button>
+  } @else {
+    <mat-spinner diameter="44" aria-label="Validando tu sesión" />
+    <p class="texto" role="status">Validando tu sesión…</p>
+  }
+</div>

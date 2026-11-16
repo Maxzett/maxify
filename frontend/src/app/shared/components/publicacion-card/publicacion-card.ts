@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Publicacion } from '../../../core/models/publicacion.interface';
 
 // Cada publicación del feed es un componente: recibe los datos con input()
@@ -7,7 +8,7 @@ import { Publicacion } from '../../../core/models/publicacion.interface';
 // El padre (la página) es quien llama a la API y abre el modal de confirmación.
 @Component({
   selector: 'app-publicacion-card',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './publicacion-card.html',
   styleUrl: './publicacion-card.scss',
 })
@@ -17,6 +18,9 @@ export class PublicacionCard {
   puedeEliminar = input(false);
   // Deshabilita "me gusta" mientras se espera la respuesta del servidor.
   procesando = input(false);
+  // En el feed el título y los comentarios llevan al detalle; en la página
+  // Publicación (enlazar = false) la tarjeta se muestra grande, sin enlaces.
+  enlazar = input(true);
 
   alternarMeGusta = output<void>();
   eliminar = output<void>();

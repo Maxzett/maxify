@@ -4,9 +4,8 @@ import type { HydratedDocument } from 'mongoose';
 import { UsuarioMongo } from '../usuarios/usuario.schema';
 import { PublicacionMongo } from './publicacion.schema';
 
-// Esquema mínimo de comentarios: en el Sprint 2 solo se leen (Mi perfil
-// muestra las últimas publicaciones con sus comentarios). El controller para
-// crearlos, editarlos y paginarlos se agrega en el Sprint 3.
+// Comentarios en colección propia: se paginan por publicación y se pueden
+// contar por rango de fechas. La fecha del comentario es createdAt.
 @Schema({ collection: 'comentarios', versionKey: false, timestamps: true })
 export class ComentarioMongo {
   @Prop({

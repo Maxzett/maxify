@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, isObjectIdOrHexString } from 'mongoose';
 import type { Usuario } from './usuario';
 import { UsuarioMongo } from './usuario.schema';
 import type { Perfil, UsuarioDocument } from './usuario.schema';
@@ -63,6 +63,11 @@ export class UsuariosService {
       .findOne({ $or: [{ correo: valor }, { username: valor }] })
       .select('+password')
       .exec();
+  }
+
+  buscarPorId(id: string): Promise<UsuarioDocument | null> {
+    if (!isObjectIdOrHexString(id)) return Promise.resolve(null);
+    return this.modelo.findById(id).exec();
   }
 
   presentar(usuario: UsuarioDocument): Usuario {

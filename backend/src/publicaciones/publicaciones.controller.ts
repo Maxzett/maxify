@@ -60,6 +60,12 @@ export class PublicacionesController {
     return this.publicacionesService.listar(filtros, usuario);
   }
 
+  // Detalle de una publicación → 404 si no existe o fue dada de baja.
+  @Get(':id')
+  obtener(@Param('id') id: string, @UsuarioActual() usuario: UsuarioToken) {
+    return this.publicacionesService.obtener(id, usuario);
+  }
+
   // Baja lógica (solo el autor o un administrador). Sin contenido → 204.
   @Delete(':id')
   @HttpCode(204)

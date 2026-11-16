@@ -55,7 +55,7 @@
               <div class="meta">
                 {{ publicacion.creadaEn | date: 'd MMM yyyy' }} · {{ publicacion.likesCount }} me gusta
               </div>
-              <h3>{{ publicacion.titulo }}</h3>
+              <h3><a class="enlace-titulo" [routerLink]="['/publicacion', publicacion.id]">{{ publicacion.titulo }}</a></h3>
               @if (publicacion.imagenUrl) {
                 <img class="imagen" [src]="publicacion.imagenUrl" [alt]="publicacion.titulo" loading="lazy" />
               }
@@ -80,10 +80,10 @@
                 <div class="comentario sin-comentarios">Todavía no hay comentarios.</div>
               }
               @if (comentariosRestantes(publicacion) > 0) {
-                <div class="mas-comentarios">
-                  y {{ comentariosRestantes(publicacion) }}
+                <a class="mas-comentarios" [routerLink]="['/publicacion', publicacion.id]">
+                  Ver {{ comentariosRestantes(publicacion) }}
                   {{ comentariosRestantes(publicacion) === 1 ? 'comentario más' : 'comentarios más' }}
-                </div>
+                </a>
               }
             </article>
           } @empty {
