@@ -28,7 +28,11 @@
   </div>
 
   <div>
-    <h2>{{ publicacion().titulo }}</h2>
+    @if (enlazar()) {
+      <h2><a class="enlace-titulo" [routerLink]="['/publicacion', publicacion().id]">{{ publicacion().titulo }}</a></h2>
+    } @else {
+      <h1 class="titulo-detalle">{{ publicacion().titulo }}</h1>
+    }
     <p class="mensaje">{{ publicacion().mensaje }}</p>
   </div>
 
@@ -49,10 +53,17 @@
       <svg width="18" height="18" viewBox="0 0 24 24" [attr.fill]="publicacion().meGusta ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
       {{ publicacion().likesCount }} Me gusta
     </button>
-    <!-- El detalle con los comentarios se agrega en el Sprint 3 -->
-    <span class="accion dato">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>
-      {{ publicacion().comentariosCount }} {{ publicacion().comentariosCount === 1 ? 'comentario' : 'comentarios' }}
-    </span>
+    <!-- En el feed lleva al detalle; en el detalle solo muestra el contador -->
+    @if (enlazar()) {
+      <a class="accion" [routerLink]="['/publicacion', publicacion().id]">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>
+        {{ publicacion().comentariosCount }} {{ publicacion().comentariosCount === 1 ? 'comentario' : 'comentarios' }}
+      </a>
+    } @else {
+      <span class="accion dato">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>
+        {{ publicacion().comentariosCount }} {{ publicacion().comentariosCount === 1 ? 'comentario' : 'comentarios' }}
+      </span>
+    }
   </div>
 </article>

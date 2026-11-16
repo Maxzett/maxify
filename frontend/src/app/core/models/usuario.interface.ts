@@ -20,3 +20,8 @@ export interface Sesion {
   token: string;
   usuario: Usuario;
 }
+
+// Respuesta de /auth/refrescar.
+export interface TokenRefrescado {
+  token: string;
+}

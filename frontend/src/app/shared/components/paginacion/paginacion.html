@@ -1,0 +1,45 @@
+<nav class="paginacion" aria-label="Paginación">
+  <button
+    type="button"
+    class="extremo"
+    (click)="ir(pagina() - 1)"
+    [disabled]="esPrimera() || deshabilitada()"
+    aria-label="Página anterior"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    <span class="texto-extremo">Anterior</span>
+  </button>
+
+  <ol class="numeros">
+    @for (item of items(); track $index) {
+      <li>
+        @if (item === 'puntos') {
+          <span class="puntos" aria-hidden="true">…</span>
+        } @else {
+          <button
+            type="button"
+            class="numero"
+            [class.actual]="item === pagina()"
+            [attr.aria-current]="item === pagina() ? 'page' : null"
+            [attr.aria-label]="'Página ' + item"
+            [disabled]="deshabilitada() && item !== pagina()"
+            (click)="ir(item)"
+          >
+            {{ item }}
+          </button>
+        }
+      </li>
+    }
+  </ol>
+
+  <button
+    type="button"
+    class="extremo"
+    (click)="ir(pagina() + 1)"
+    [disabled]="esUltima() || deshabilitada()"
+    aria-label="Página siguiente"
+  >
+    <span class="texto-extremo">Siguiente</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+  </button>
+</nav>

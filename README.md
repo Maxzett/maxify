@@ -45,17 +45,18 @@ Es un **monorepo con dos proyectos independientes**, cada uno con su `package.js
 src/
 ├── main.ts                 ValidationPipe global + CORS (FRONTEND_ORIGIN)
 ├── app.module.ts           Carga el .env con loadEnvFile y conecta Mongo
-├── auth/                   Registro y login (bcrypt + JWT)
+├── auth/                   Registro, login, autorizar y refrescar (bcrypt + JWT)
 │   ├── dto/                RegistroDto, LoginDto (class-validator)
 │   ├── jwt-auth.guard.ts   Guard global: exige el token en todas las rutas
 │   ├── publico.decorator.ts        @Publico() para login, registro y health check
 │   └── usuario-actual.decorator.ts @UsuarioActual() lee el usuario del token
 ├── usuarios/               Esquema Usuario + UsuariosService (presentar())
-├── publicaciones/          Publicaciones, me gusta y (lectura de) comentarios
-│   ├── dto/                CrearPublicacionDto, ListarPublicacionesDto
-│   ├── publicacion.schema.ts   titulo, mensaje, imagen, autor, likesCount, eliminada
+├── publicaciones/          Publicaciones, me gusta y comentarios
+│   ├── dto/                CrearPublicacionDto, ListarPublicacionesDto, ComentarioDto, ListarComentariosDto
+│   ├── publicacion.schema.ts   titulo, mensaje, imagen, autor, likesCount, comentariosCount, eliminada
 │   ├── like.schema.ts          un documento por "me gusta" (índice único)
-│   └── comentario.schema.ts    esquema mínimo (el controller llega en el Sprint 3)
+│   ├── comentario.schema.ts    publicacion, autor, mensaje, modificado, fecha
+│   └── comentarios.controller.ts / comentarios.service.ts   crear, editar y listar paginado
 └── imagenes/               ImagenesService: Multer → Sharp (WebP) → Cloudinary
 ```
 
@@ -85,27 +86,47 @@ La respuesta nunca incluye la contraseña ni el `_id` crudo de Mongo.
 - Cada publicación trae `meGusta` (si el usuario del token le dio me gusta) y `comentariosCount`.
 - `comentarios=N` (0 a 10) agrega a cada publicación sus últimos N comentarios. Lo usa Mi perfil.
 
+**Endpoints del Sprint 3** (todos con token; sin token, con token inválido o vencido → **401**)
+
+| Método | Ruta | Respuesta |
+|---|---|---|
+| `POST` | `/auth/autorizar` | **200** datos actualizados del usuario del token · 401 token inválido o vencido · 403 cuenta deshabilitada |
+| `POST` | `/auth/refrescar` | **200** `{ token }` nuevo con el mismo payload (id, correo, usuario, perfil) y otros 15 minutos |
+| `GET` | `/publicaciones/:id` | **200** la publicación (con `meGusta` y `comentariosCount`) · 400 id inválido · 404 no existe o fue dada de baja |
+| `GET` | `/publicaciones/:id/comentarios?offset=0&limit=5` | **200** `{ comentarios, total }`, del más reciente al más viejo · 400 parámetros inválidos · 404 la publicación no existe |
+| `POST` | `/publicaciones/:id/comentarios` (`{ mensaje }`) | **201** el comentario, a nombre del usuario del token y con su fecha · 400 mensaje vacío o de más de 500 caracteres · 404 la publicación no existe |
+| `PUT` | `/comentarios/:id` (`{ mensaje }`) | **200** el comentario con `modificado: true` · 400 mensaje inválido · 403 no es el autor · 404 no existe |
+
 ### Frontend (`/frontend`)
 
 ```
 src/app/
 ├── core/
-│   ├── models/             Interfaces Usuario, Sesion, Publicacion
+│   ├── models/             Interfaces Usuario, Sesion, Publicacion, Comentario
+│   ├── guards/             authGuard (con sesión) y guestGuard (login y registro sin sesión)
 │   ├── interceptors/       authInterceptor (token en cada pedido, 401 → login)
-│   ├── services/           AuthService, PublicacionesService, NotificacionesService
-│   ├── utils/              prepararImagen (fotos HEIC del iPhone → JPG)
+│   ├── services/           AuthService, SesionService, PublicacionesService, ComentariosService, NotificacionesService
+│   ├── utils/              prepararImagen (fotos HEIC del iPhone → JPG), vencimientoDelToken
 │   └── validators/         passwordSegura, passwordsIguales, edadMinima, errorDeImagen
 ├── features/
+│   ├── cargando/           Pantalla inicial: valida el token con /auth/autorizar
 │   ├── auth/login/         Login (correo o usuario)
 │   ├── auth/registro/      Registro con foto de perfil
-│   ├── publicaciones/      Feed (orden, "Ver más", me gusta, eliminar)
+│   ├── publicaciones/      Feed (orden, paginación numerada, me gusta, eliminar)
+│   ├── publicacion/        Detalle: publicación grande + Comentarios (escribir, editar, "Cargar más")
 │   ├── crear-publicacion/  Formulario con imagen opcional
 │   └── perfil/             Mi perfil con las últimas 3 publicaciones
 ├── layout/header/          Navbar
-└── shared/components/      Dialogo (MatDialog), PublicacionCard (input/output)
+└── shared/components/      Dialogo (MatDialog), PublicacionCard y Paginacion (input/output)
 ```
 
-Rutas: `/login`, `/registro`, `/publicaciones`, `/crear-publicacion`, `/perfil`, todas con `loadComponent` (lazy loading).
+Rutas, todas con `loadComponent` (lazy loading):
+
+| Ruta | Guard |
+|---|---|
+| `/cargando` (entrada de la app) | — |
+| `/login`, `/registro` | `guestGuard` |
+| `/publicaciones`, `/publicacion/:id`, `/crear-publicacion`, `/perfil` | `authGuard` |
 
 ---
 
@@ -144,7 +165,7 @@ Borra y vuelve a cargar usuarios, publicaciones, me gusta y comentarios (se pued
 | `admin` | administrador | `Clave1234` |
 | `lumendez`, `jpereyra`, `anarossi`, `msosa`, `camig` | usuario | `Clave1234` |
 
-Carga 12 publicaciones activas (alcanza para probar "Ver más"), una dada de baja, 22 me gusta y 10 comentarios. `lumendez` tiene comentarios en sus publicaciones para ver Mi perfil completo. Los correos son `<usuario>@maxify.test`.
+Carga 12 publicaciones activas (3 páginas, alcanza para probar la paginación), una dada de baja, 22 me gusta y 10 comentarios. `lumendez` tiene comentarios en sus publicaciones para ver Mi perfil completo. Los correos son `<usuario>@maxify.test`.
 
 ### Variables de entorno del backend
 
@@ -232,7 +253,9 @@ Otras decisiones:
 
 **Sprint 2 – publicaciones**
 
-- **"Ver más" en lugar de páginas numeradas**: cada carga pide la siguiente con `offset` y `limit` y la agrega debajo. La API devuelve también el `total`, así el front sabe si quedan más. Desde la segunda carga aparece un botón flotante para volver arriba. Si al cambiar el orden había un pedido en curso, se cancela para que no se mezclen las listas.
+- **Paginación numerada** (reemplazó al botón "Ver más" original, a pedido): 5 publicaciones por página con « Anterior · 1 … 4 **5** 6 … 12 · Siguiente » y el texto "Mostrando 6–10 de 12 publicaciones". El servidor recorta con `offset = (página − 1) × 5` y `limit = 5`, y devuelve el `total` para calcular cuántas páginas hay. Reglas: "Anterior" y "Siguiente" se deshabilitan en la primera y en la última página; la página actual se resalta y tiene `aria-current="page"`; con más de 7 páginas se abrevia con "…" (siempre se ven la primera, la última, la actual y sus vecinas, y nunca un "…" que reemplace una sola página); con una sola página la barra no se muestra; al cambiar de página se sube al principio de la lista; al cambiar el orden se vuelve a la página 1.
+- **La página y el orden van en la URL** (`/publicaciones?pagina=2&orden=likes`): se conservan al recargar, al volver desde el detalle y con atrás/adelante del navegador. Un valor inválido (`?pagina=abc`) se toma como la página 1 y una página que no existe (`?pagina=99`, o la última se quedó vacía al eliminar) lleva a la última. Si se cambia de página antes de que llegue la respuesta anterior, ese pedido se cancela.
+- **La paginación es un componente reutilizable** (`Paginacion`, en `shared/`): recibe la página actual y el total con `input()` y avisa la elegida con `output()`; la página decide qué cargar.
 - **El orden lo hace el servidor** (`sort` de Mongo), no el front: ordenar en el navegador solo ordenaría lo ya cargado. Se desempata por `_id` para que el orden sea estable entre páginas.
 - **Me gusta en una colección propia** (`likes`) con **índice único** `(usuario, publicacion)`: la base de datos garantiza uno solo por usuario; si se repite, Mongo rechaza el alta (error 11000) y la API responde **409**.
 - **Contador `likesCount`** en la publicación, actualizado con `$inc` (atómico, como `reservar()` de clase): ordenar por me gusta es un `sort` simple, sin contar en cada pedido. Al quitar, la condición `likesCount > 0` evita negativos.
@@ -242,11 +265,24 @@ Otras decisiones:
 - **Comentarios en Mi perfil**: el controller de comentarios es del Sprint 3, pero el perfil ya tiene que mostrarlos. Se agregó el esquema `Comentario` (colección propia, para poder paginarlos y contarlos por fecha más adelante) y el listado acepta `comentarios=N` para traer los últimos N de cada publicación. La publicación guarda `comentariosCount` con el mismo criterio que `likesCount`.
 - **Referencias con `Schema.Types.ObjectId`**: en `@Prop({ type })` se usa el tipo de esquema de Mongoose y no la clase `Types.ObjectId`; con esta última Mongoose guarda el valor sin convertir ("Mixed") y las búsquedas por id no coinciden.
 
+**Sprint 3 – comentarios, token y sesión**
+
+- **Pantalla Cargando como entrada de la app**: con un token guardado, llama a `POST /auth/autorizar`. Si es válido va a Publicaciones y, si no, al login. El `authGuard` también manda a Cargando cuando el token todavía no se validó en esta carga de la app (por ejemplo, al recargar con F5) y guarda la página pedida en `?volver=`, así después de validar se vuelve ahí. Si el servidor no responde (por ejemplo, Render arrancando), ofrece "Reintentar" en lugar de cerrar la sesión.
+- **`/auth/autorizar` vuelve a buscar al usuario en la base**: el guard ya validó la firma y el vencimiento, pero la cuenta pudo deshabilitarse después de emitir el token. Responde **403** en ese caso y devuelve los datos actualizados del usuario.
+- **`/auth/refrescar` firma de nuevo el mismo payload** (id, correo, usuario y perfil) y deja afuera `iat` y `exp` del token anterior, así el nuevo dura otros 15 minutos.
+- **Aviso de sesión calculado desde el propio token**: el `SesionService` lee el `exp` del JWT (el payload es base64, está firmado pero no cifrado) y abre el modal 5 minutos antes de que venza. Como el token dura 15 minutos, al iniciar o extender la sesión el contador es de 10 minutos, tal como pide la consigna, y sigue siendo correcto si se recarga la página. Un `effect()` sobre el token reprograma los contadores con cada login, refresco o cierre de sesión. "Extender sesión" llama a `/auth/refrescar`; si no se extiende, al vencer se cierra la sesión y se vuelve al login.
+- **Cualquier 401 → login**: el interceptor manda el token a todas las rutas salvo login y registro (ahí un 401 es "contraseña incorrecta"). Si varios pedidos fallan juntos, solo el primero cierra la sesión y muestra el aviso.
+- **Comentarios paginados con "Cargar más"**: se piden de a 5, del más reciente al más viejo (desempate por `_id`). Cada "Cargar más" usa `offset` = los que ya se muestran y agrega los nuevos abajo sin borrar los anteriores. Un comentario recién escrito se agrega arriba de todo, y como también es el más reciente en el servidor, el `offset` sigue coincidiendo.
+- **Edición solo del autor**: el botón "Editar" se muestra solo en los comentarios propios, y el servidor igual lo valida con el usuario del token (**403** si no es el autor). Al editar se marca `modificado: true` y se muestra "(editado)". Si el texto no cambió, no se llama a la API.
+- **`comentariosCount` con `$inc`** al comentar, igual que `likesCount`: el feed muestra el contador sin contar los comentarios en cada pedido.
+- **Comentarios con su propio controller y service** (`ComentariosController`, `ComentariosService`) dentro del módulo de publicaciones, porque dependen de ellas. Se crean y listan colgados de la publicación (`/publicaciones/:id/comentarios`) y se editan por su propio id (`/comentarios/:id`). Los datos del autor se arman con una función compartida, `presentarAutor()`.
+- **Página Publicación** (`/publicacion/:id`): reutiliza `PublicacionCard` con `enlazar = false` para mostrarla en grande. Los comentarios son un componente aparte que recibe el id con `input()` y avisa con `output()` cuando se agrega uno, para actualizar el contador.
+
 ---
 
 ## Estado por sprint
 
 - [x] **Sprint 1**: proyectos, registro, login, navegación, favicon, pantallas base de Publicaciones y Mi perfil, configuración de deploy.
-- [x] **Sprint 2**: crear publicaciones con imagen opcional, listado con orden y "Ver más", dar y quitar me gusta, eliminar las propias (baja lógica), Mi perfil con las últimas 3 publicaciones y sus comentarios.
-- [ ] **Sprint 3**: comentarios, validación del token, pantalla Cargando, sesión de 10 minutos con modal para extenderla.
+- [x] **Sprint 2**: crear publicaciones con imagen opcional, listado con orden y paginación numerada, dar y quitar me gusta, eliminar las propias (baja lógica), Mi perfil con las últimas 3 publicaciones y sus comentarios.
+- [x] **Sprint 3**: página Publicación con comentarios (escribir, editar y "Cargar más"), validación y refresco del token, pantalla Cargando, guards, sesión de 10 minutos con modal para extenderla y redirección al login ante cualquier 401.
 - [ ] **Sprint 4**: administración de usuarios, estadísticas, PWA, pipes y directivas propias.
