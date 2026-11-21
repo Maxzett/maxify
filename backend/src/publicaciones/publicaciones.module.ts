@@ -5,6 +5,8 @@ import { UsuariosModule } from '../usuarios/usuarios.module';
 import { ComentarioMongo, ComentarioSchema } from './comentario.schema';
 import { ComentariosController } from './comentarios.controller';
 import { ComentariosService } from './comentarios.service';
+import { EstadisticasController } from './estadisticas.controller';
+import { EstadisticasService } from './estadisticas.service';
 import { LikeMongo, LikeSchema } from './like.schema';
 import { PublicacionMongo, PublicacionSchema } from './publicacion.schema';
 import { PublicacionesController } from './publicaciones.controller';
@@ -22,7 +24,11 @@ import { PublicacionesService } from './publicaciones.service';
     // Subida de la imagen de la publicación a Cloudinary.
     ImagenesModule,
   ],
-  controllers: [PublicacionesController, ComentariosController],
-  providers: [PublicacionesService, ComentariosService],
+  controllers: [
+    PublicacionesController,
+    ComentariosController,
+    EstadisticasController,
+  ],
+  providers: [PublicacionesService, ComentariosService, EstadisticasService],
 })
 export class PublicacionesModule {}

@@ -65,7 +65,7 @@ export class AuthController {
     return this.authService.autorizar(usuario);
   }
 
-  // Devuelve un token nuevo con el mismo payload y otros 15 minutos.
+  // Devuelve un token nuevo con el mismo payload y otros 3 minutos.
   @Post('refrescar')
   @HttpCode(200)
   refrescar(@UsuarioActual() usuario: UsuarioToken) {
