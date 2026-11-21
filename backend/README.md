@@ -11,6 +11,8 @@ cp .env.example .env    # completar las variables
 npm run start:dev       # desarrollo con recarga (http://localhost:3000)
 npm run build           # compila a dist/
 npm run start:prod      # ejecuta dist/main (lo usa Render)
+npm run seed            # datos de demostración en un MongoDB local
+npm run seed:prod       # ídem en producción (MONGODB_URI_PROD, pide confirmación)
 npm run lint
 npm test
 ```

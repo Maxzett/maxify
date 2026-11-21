@@ -1,0 +1,84 @@
+MAXIFY - RED SOCIAL
+Programación IV - TP #2 - UTN Avellaneda - 2026 C1
+Entrega final (hasta Sprint 4)
+==========================================================
+
+ENLACES
+-------
+Aplicación (frontend, Vercel):  https://maxify-ten.vercel.app
+API (backend, Render):          https://maxify.onrender.com
+Repositorio (público):          https://github.com/Maxzett/maxify
+  - Rama main = versión desplegada.
+  - Carpetas /frontend (Angular 21) y /backend (NestJS 11 + MongoDB Atlas).
+
+IMPORTANTE: el backend está en el plan gratuito de Render, que "duerme" el
+servicio después de un rato sin uso. El primer ingreso puede tardar entre
+30 y 50 segundos (la pantalla de carga queda girando). Después responde normal.
+
+
+ACCESO / CREDENCIALES
+---------------------
+En la pantalla de login, debajo del formulario, está el bloque
+"Entrar rápido como" con dos botones que completan el formulario e ingresan
+directamente:
+  - "Admin"    → rol administrador
+  - "Usuario"  → rol usuario
+
+Si se prefiere ingresar a mano (sirve el nombre de usuario o el correo):
+
+  Rol administrador
+    Usuario:     admin
+    Correo:      admin@maxify.test
+    Contraseña:  Clave1234
+
+  Rol usuario
+    Usuario:     lumendez
+    Correo:      lumendez@maxify.test
+    Contraseña:  Clave1234
+
+  Otros usuarios de prueba (misma contraseña Clave1234):
+    administrador: mdiaz
+    usuario:       jpereyra, anarossi, msosa, camig, fbenitez, vlopez,
+                   nacosta, srodriguez
+    deshabilitado: tmolina (para ver el aviso de cuenta deshabilitada)
+
+
+CONFIGURACIÓN DEL TOKEN (pedida para la corrección)
+---------------------------------------------------
+  - El token JWT vence a los 3 minutos.
+  - Cuando queda 1 minuto aparece el modal "¿Querés extender tu sesión?" con
+    una cuenta regresiva en vivo. "Extender sesión" pide un token nuevo
+    (/auth/refrescar) y reinicia el contador.
+  - Si no se extiende, al vencer se cierra la sesión y se avisa con un modal.
+  - El token se guarda en la cookie "maxify_token", con la misma fecha de
+    vencimiento que el JWT: se ve en DevTools > Application > Cookies, el
+    navegador la borra sola al vencer y se elimina al cerrar sesión.
+  - Al abrir la app, al recargar y al entrar después del login se muestra la
+    pantalla de carga (logo + spinner, mínimo 2 segundos) mientras se valida
+    el token contra /auth/autorizar.
+
+
+QUÉ PROBAR POR ROL
+------------------
+Usuario:
+  - Publicaciones (orden por fecha / me gusta, paginación), dar y quitar me
+    gusta, crear publicación (botón "Crear publicación"), eliminar las propias.
+  - Detalle de publicación con comentarios ("Cargar más"), comentar y editar
+    los comentarios propios (quedan marcados como "editado").
+  - Mi perfil (datos + últimas 3 publicaciones con comentarios) y
+    "Editar perfil" (nombre, apellido, fecha de nacimiento, descripción y foto).
+
+Administrador (además de lo anterior):
+  - Botón para dar de baja cualquier publicación (feed y detalle).
+  - Botón "Admin" del encabezado → Panel de control:
+      * Usuarios: listado, búsqueda, habilitar / deshabilitar (un usuario
+        deshabilitado no puede ingresar y se le avisa con un modal) y
+        "Nuevo usuario" con radio buttons Usuario / Administrador.
+      * Estadísticas: lapso de fechas elegible y 3 gráficos de distinto tipo
+        (dona, línea y barras).
+
+Otros puntos del Sprint 4:
+  - PWA: la app se puede instalar desde el navegador (manifest + service worker).
+  - Pipes propios: tiempoRelativo, nombreCompleto, truncar.
+  - Directivas propias: *appSoloAdmin (estructural), appConfirmar y
+    appImagenFallback (de atributo).
