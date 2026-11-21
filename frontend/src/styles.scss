@@ -24,6 +24,10 @@
   --color-error: #b42318;
   --color-error-suave: #fce4e2;
   --color-exito: #3f7d4e;
+  // Fondo de la página: manchas difusas cálidas + puntos tenues.
+  --fondo-mancha-1: rgba(194, 65, 12, 0.1);
+  --fondo-mancha-2: rgba(140, 110, 84, 0.12);
+  --fondo-punto: rgba(120, 90, 60, 0.13);
 
   --fuente: 'Figtree', system-ui, sans-serif;
   --radio-tarjeta: 12px;
@@ -49,6 +53,9 @@
     --color-error: #f28b82;
     --color-error-suave: #4a1f1c;
     --color-exito: #7fc79a;
+    --fondo-mancha-1: rgba(234, 122, 75, 0.1);
+    --fondo-mancha-2: rgba(168, 140, 110, 0.08);
+    --fondo-punto: rgba(245, 240, 232, 0.06);
   }
 }
 
@@ -133,7 +140,18 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--color-fondo);
+  background-color: var(--color-fondo);
+  // Dos manchas de color en esquinas opuestas y una trama de puntos de 22px.
+  // background-attachment: fixed → el fondo queda quieto al hacer scroll.
+  background-image:
+    radial-gradient(60rem 40rem at 100% 0%, var(--fondo-mancha-1), transparent 70%),
+    radial-gradient(50rem 36rem at 0% 100%, var(--fondo-mancha-2), transparent 70%),
+    radial-gradient(var(--fondo-punto) 1px, transparent 1.4px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    22px 22px;
+  background-attachment: fixed;
   color: var(--color-texto);
   font-family: var(--fuente);
   line-height: 1.5;

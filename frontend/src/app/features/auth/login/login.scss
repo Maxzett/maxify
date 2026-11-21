@@ -116,6 +116,48 @@
   color: var(--color-texto-2);
 }
 
+// Botones de acceso rápido por rol (para la corrección).
+.acceso-rapido {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.separador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-texto-3);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-borde);
+  }
+}
+
+.botones-demo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .botones-demo {
+    grid-template-columns: 1fr;
+  }
+}
+
 // En pantallas chicas la presentación queda arriba y más compacta.
 @media (max-width: 900px) {
   .presentacion {

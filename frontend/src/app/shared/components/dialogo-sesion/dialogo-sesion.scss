@@ -1,0 +1,40 @@
+.cuenta {
+  margin-top: 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tiempo {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-acento);
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.tiempo.urgente {
+  color: var(--color-error);
+}
+
+.leyenda {
+  font-size: 14px;
+  color: var(--color-texto-3);
+}
+
+.barra {
+  margin-top: 12px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-superficie-2);
+  overflow: hidden;
+}
+
+.relleno {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-acento);
+  transition: width 0.25s linear;
+}

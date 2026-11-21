@@ -11,8 +11,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <!-- Splash mientras descarga Angular: mismo logo y spinner que la pantalla Cargando -->
+  <style>
+    .splash { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+    .splash-logo { font: 800 40px Figtree, system-ui, sans-serif; letter-spacing: -0.02em; color: #c2410c; }
+    .splash-spinner { width: 44px; height: 44px; border-radius: 50%; border: 4px solid rgba(194, 65, 12, 0.2); border-top-color: #c2410c; animation: splash-giro 0.9s linear infinite; }
+    @keyframes splash-giro { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-  <app-root></app-root>
+  <!-- Angular reemplaza este contenido al arrancar -->
+  <app-root>
+    <div class="splash">
+      <span class="splash-logo">Maxify</span>
+      <span class="splash-spinner" role="progressbar" aria-label="Cargando"></span>
+    </div>
+  </app-root>
+  <noscript>Activá JavaScript para usar Maxify.</noscript>
 </body>
 </html>

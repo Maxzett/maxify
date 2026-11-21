@@ -35,6 +35,18 @@ export class NotificacionesService {
       .pipe(map((resultado) => resultado === true));
   }
 
+  // Modal informativo cuando un administrador deshabilitó la cuenta
+  // (al intentar el login o en medio de la sesión).
+  cuentaDeshabilitada(): void {
+    this.confirmar({
+      titulo: 'Tu cuenta está deshabilitada',
+      mensaje:
+        'Un administrador deshabilitó tu cuenta, así que no podés ingresar. Si creés que es un error, contactá al equipo de la plataforma.',
+      icono: 'bloqueo',
+      textoConfirmar: 'Entendido',
+    }).subscribe();
+  }
+
   // Convierte un error HTTP en un mensaje legible.
   mensajeDeError(error: HttpErrorResponse): string {
     if (error.status === 0)

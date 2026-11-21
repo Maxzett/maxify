@@ -39,6 +39,18 @@ export class Login {
   // Error que devuelve el servidor (por ejemplo, credenciales incorrectas).
   errorServidor = signal<string | null>(null);
 
+  // Cuentas de demostración para la corrección (las crea el seed, también en
+  // producción). Cada botón completa el formulario e ingresa.
+  cuentasDemo = [
+    { etiqueta: 'Admin', identificador: 'admin', password: 'Clave1234' },
+    { etiqueta: 'Usuario', identificador: 'lumendez', password: 'Clave1234' },
+  ];
+
+  accesoRapido(cuenta: { identificador: string; password: string }): void {
+    this.form.setValue({ identificador: cuenta.identificador, password: cuenta.password });
+    this.ingresar();
+  }
+
   ingresar(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -49,33 +61,22 @@ export class Login {
     const { identificador, password } = this.form.getRawValue();
 
     this.auth.login(identificador.trim(), password).subscribe({
-      next: (sesion) => {
+      // Se entra a la app por la pantalla de carga, que valida el token
+      // recién emitido y después lleva a Publicaciones (y saluda).
+      next: () => {
         this.cargando.set(false);
-        this.notificaciones.exito(`¡Hola, ${sesion.usuario.nombre}!`);
-        this.router.navigate(['/publicaciones']);
+        this.router.navigate(['/cargando'], { queryParams: { saludo: 'hola' }, replaceUrl: true });
       },
       error: (error: HttpErrorResponse) => {
         this.cargando.set(false);
         if (error.status === 401) {
           this.errorServidor.set('Usuario o contraseña incorrectos.');
         } else if (error.status === 403) {
-          this.avisarCuentaDeshabilitada();
+          this.notificaciones.cuentaDeshabilitada();
         } else {
           this.notificaciones.error(this.notificaciones.mensajeDeError(error));
         }
       },
     });
-  }
-
-  private avisarCuentaDeshabilitada(): void {
-    this.notificaciones
-      .confirmar({
-        titulo: 'Tu cuenta está deshabilitada',
-        mensaje:
-          'Un administrador deshabilitó tu cuenta, así que no podés ingresar. Si creés que es un error, contactá al equipo de la plataforma.',
-        icono: 'bloqueo',
-        textoConfirmar: 'Entendido',
-      })
-      .subscribe();
   }
 }
