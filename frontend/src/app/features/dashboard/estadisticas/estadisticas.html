@@ -1,0 +1,114 @@
+<section class="tarjeta filtros">
+  <div class="campos">
+    <label class="fecha">
+      <span>Desde</span>
+      <input type="date" [value]="desde()" [max]="hasta() || hoy" (change)="cambiarDesde($event)" />
+    </label>
+    <label class="fecha">
+      <span>Hasta</span>
+      <input
+        type="date"
+        [value]="hasta()"
+        [min]="desde()"
+        [max]="hoy"
+        (change)="cambiarHasta($event)"
+      />
+    </label>
+  </div>
+  <div class="atajos" role="group" aria-label="Lapsos rápidos">
+    @for (atajo of atajos; track atajo.dias) {
+      <button
+        type="button"
+        [class.activo]="atajoActivo(atajo)"
+        [attr.aria-pressed]="atajoActivo(atajo)"
+        (click)="aplicarAtajo(atajo)"
+      >
+        Últimos {{ atajo.etiqueta }}
+      </button>
+    }
+  </div>
+  @if (rangoInvalido()) {
+    <p class="aviso" role="alert">
+      Elegí un lapso válido: la fecha "desde" no puede ser posterior a "hasta".
+    </p>
+  }
+</section>
+
+@if (error()) {
+  <section class="tarjeta estado">
+    <p>{{ error() }}</p>
+    <button mat-stroked-button type="button" (click)="cargar()">Reintentar</button>
+  </section>
+} @else {
+  <div class="resumen" [class.atenuado]="cargando()">
+    <div class="tarjeta dato">
+      <span class="valor">{{ totalPublicaciones() }}</span>
+      <span class="leyenda">publicaciones en el lapso</span>
+    </div>
+    <div class="tarjeta dato">
+      <span class="valor">{{ comentarios().total }}</span>
+      <span class="leyenda">comentarios en el lapso</span>
+    </div>
+    <div class="tarjeta dato">
+      <span class="valor">{{ promedioDiario() }}</span>
+      <span class="leyenda">comentarios por día (promedio)</span>
+    </div>
+  </div>
+
+  <div class="graficos" [class.atenuado]="cargando()">
+    <section class="tarjeta grafico">
+      <h2>Publicaciones por usuario</h2>
+      <p class="descripcion">Cantidad de publicaciones que hizo cada usuario en el lapso.</p>
+      <div class="lienzo">
+        @if (publicaciones().length) {
+          <canvas
+            baseChart
+            type="doughnut"
+            [data]="graficoPublicaciones()"
+            [options]="opcionesDona"
+          ></canvas>
+        } @else if (!cargando()) {
+          <p class="sin-datos">No hubo publicaciones en este lapso.</p>
+        }
+      </div>
+    </section>
+
+    <section class="tarjeta grafico">
+      <h2>Comentarios por día</h2>
+      <p class="descripcion">Comentarios realizados cada día del lapso.</p>
+      <div class="lienzo">
+        @if (comentarios().dias.length) {
+          <canvas
+            baseChart
+            type="line"
+            [data]="graficoComentarios()"
+            [options]="opcionesLinea"
+          ></canvas>
+        }
+      </div>
+    </section>
+
+    <section class="tarjeta grafico ancho">
+      <h2>Comentarios por publicación</h2>
+      <p class="descripcion">Las 10 publicaciones que más comentarios recibieron en el lapso.</p>
+      <div class="lienzo alto">
+        @if (porPublicacion().length) {
+          <canvas
+            baseChart
+            type="bar"
+            [data]="graficoPorPublicacion()"
+            [options]="opcionesBarras"
+          ></canvas>
+        } @else if (!cargando()) {
+          <p class="sin-datos">No hubo comentarios en este lapso.</p>
+        }
+      </div>
+    </section>
+  </div>
+
+  @if (cargando()) {
+    <div class="cargando" aria-live="polite">
+      <mat-spinner diameter="32" aria-label="Cargando estadísticas" />
+    </div>
+  }
+}

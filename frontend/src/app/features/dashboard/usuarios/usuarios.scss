@@ -1,0 +1,269 @@
+.panel {
+  padding: 24px;
+}
+
+.cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+  }
+
+  a svg {
+    margin-right: 4px;
+    vertical-align: -3px;
+  }
+}
+
+.resumen {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--color-texto-3);
+}
+
+.herramientas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 20px 0 8px;
+}
+
+.buscador {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-borde-fuerte);
+  border-radius: 999px;
+  color: var(--color-texto-3);
+  background: var(--color-superficie);
+
+  &:focus-within {
+    border-color: var(--color-acento);
+    box-shadow: 0 0 0 3px var(--color-acento-suave);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: 400 15px var(--fuente);
+    color: var(--color-texto);
+  }
+}
+
+.filtros {
+  display: inline-flex;
+  padding: 4px;
+  gap: 2px;
+  border-radius: 999px;
+  background: var(--color-superficie-2);
+
+  button {
+    border: 0;
+    min-height: 36px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: transparent;
+    font: 700 13px var(--fuente);
+    color: var(--color-texto-2);
+    cursor: pointer;
+  }
+
+  button.activo {
+    background: var(--color-superficie);
+    color: var(--color-texto);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.estado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 16px;
+  color: var(--color-texto-2);
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// Tabla armada con grid: en pantallas chicas cada fila pasa a ser una tarjeta.
+.fila {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) minmax(160px, 2fr) 130px 130px 100px 140px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.encabezados {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-texto-3);
+}
+
+.fila.inactivo .persona,
+.fila.inactivo .correo {
+  opacity: 0.6;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.foto {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.nombres {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nombre {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vos {
+  margin-left: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-acento-suave);
+  color: var(--color-acento);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.username,
+.alta {
+  font-size: 13px;
+  color: var(--color-texto-3);
+}
+
+.correo {
+  font-size: 14px;
+  color: var(--color-texto-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chips {
+  display: contents;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--color-superficie-2);
+  color: var(--color-texto-2);
+}
+
+.chip-admin {
+  background: var(--color-acento-suave);
+  color: var(--color-acento);
+}
+
+.chip-activo {
+  background: color-mix(in srgb, var(--color-exito) 15%, transparent);
+  color: var(--color-exito);
+}
+
+.chip-inactivo {
+  background: var(--color-error-suave);
+  color: var(--color-error);
+}
+
+.accion {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.boton-peligro {
+  --mat-button-outlined-label-text-color: var(--color-error);
+  --mat-button-outlined-outline-color: color-mix(in srgb, var(--color-error) 45%, transparent);
+}
+
+.nota {
+  color: var(--color-texto-3);
+  padding-right: 24px;
+}
+
+.vacio {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--color-texto-3);
+}
+
+@media (max-width: 900px) {
+  .encabezados {
+    display: none;
+  }
+
+  .fila {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'persona accion'
+      'correo correo'
+      'chips chips';
+    row-gap: 8px;
+  }
+
+  .persona {
+    grid-area: persona;
+  }
+  .correo {
+    grid-area: correo;
+  }
+  .accion {
+    grid-area: accion;
+  }
+  .alta {
+    display: none;
+  }
+  // Los dos chips (perfil y estado) comparten la última fila.
+  .chips {
+    grid-area: chips;
+    display: flex;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .panel {
+    padding: 18px 16px;
+  }
+}

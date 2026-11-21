@@ -24,15 +24,20 @@
   flex: 1;
 }
 
+// Botón principal de la barra: píldora terracota con ícono + texto.
 .boton-crear {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px 0 12px;
+  border-radius: 999px;
   background: var(--color-acento);
   color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
   transition: background 0.15s;
 
   &:hover {
@@ -64,6 +69,11 @@
     background: var(--color-superficie-2);
     color: var(--color-texto);
   }
+}
+
+.boton-admin.activo {
+  background: var(--color-acento-suave);
+  border-color: var(--color-acento);
 }
 
 // Ícono de salir y avatar: mismo círculo beige.
@@ -101,5 +111,18 @@
   }
   .logo {
     font-size: 24px;
+  }
+}
+
+// En pantallas chicas el botón de crear queda solo con el ícono.
+@media (max-width: 640px) {
+  .texto-crear {
+    display: none;
+  }
+  .boton-crear {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
   }
 }

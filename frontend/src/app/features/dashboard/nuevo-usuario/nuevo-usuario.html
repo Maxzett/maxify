@@ -1,0 +1,29 @@
+<section class="tarjeta panel">
+  <a class="volver" routerLink="/dashboard/usuarios">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      aria-hidden="true"
+    >
+      <path d="M15 6l-6 6 6 6"></path>
+    </svg>
+    Volver a usuarios
+  </a>
+  <h2>Nuevo usuario</h2>
+  <p class="subtitulo">
+    Mismos datos que el registro. Elegí si la cuenta es de usuario o de administrador.
+  </p>
+
+  <app-formulario-usuario
+    modo="admin"
+    textoEnviar="Crear usuario"
+    rutaCancelar="/dashboard/usuarios"
+    [cargando]="guardando()"
+    (enviar)="crear($event)"
+    (invalido)="avisarErrores()"
+  />
+</section>

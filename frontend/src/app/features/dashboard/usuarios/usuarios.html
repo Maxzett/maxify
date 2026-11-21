@@ -1,0 +1,142 @@
+<section class="tarjeta panel">
+  <div class="cabecera">
+    <div>
+      <h2>Usuarios</h2>
+      @if (!cargando() && !error()) {
+        <p class="resumen">
+          {{ usuarios().length }} en total · {{ totalActivos() }} activos · {{ totalAdmins() }}
+          {{ totalAdmins() === 1 ? 'administrador' : 'administradores' }}
+        </p>
+      }
+    </div>
+    <a mat-flat-button routerLink="nuevo">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        aria-hidden="true"
+      >
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      Nuevo usuario
+    </a>
+  </div>
+
+  <div class="herramientas">
+    <label class="buscador">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="M20 20l-4-4"></path>
+      </svg>
+      <input
+        type="search"
+        placeholder="Buscar por nombre, usuario o correo"
+        aria-label="Buscar usuarios"
+        [ngModel]="busqueda()"
+        (ngModelChange)="busqueda.set($event)"
+      />
+    </label>
+    <div class="filtros" role="group" aria-label="Filtrar por estado">
+      @for (opcion of ['todos', 'activos', 'deshabilitados']; track opcion) {
+        <button
+          type="button"
+          [class.activo]="filtro() === opcion"
+          [attr.aria-pressed]="filtro() === opcion"
+          (click)="filtro.set($any(opcion))"
+        >
+          {{ opcion === 'todos' ? 'Todos' : opcion === 'activos' ? 'Activos' : 'Deshabilitados' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="estado">
+      <mat-spinner diameter="36" aria-label="Cargando usuarios" />
+    </div>
+  } @else if (error()) {
+    <div class="estado">
+      <p>{{ error() }}</p>
+      <button mat-stroked-button type="button" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else {
+    <ul class="lista" aria-label="Listado de usuarios">
+      <li class="fila encabezados" aria-hidden="true">
+        <span>Usuario</span>
+        <span>Correo</span>
+        <span>Perfil</span>
+        <span>Estado</span>
+        <span>Alta</span>
+        <span></span>
+      </li>
+      @for (usuario of visibles(); track usuario.id) {
+        <li class="fila" [class.inactivo]="!usuario.activo">
+          <div class="persona">
+            @if (usuario.imagenUrl) {
+              <img class="avatar foto" [src]="usuario.imagenUrl" alt="" appImagenFallback />
+            } @else {
+              <span class="avatar foto">{{ iniciales(usuario) }}</span>
+            }
+            <div class="nombres">
+              <span class="nombre">
+                {{ usuario | nombreCompleto: 'apellido' }}
+                @if (esYo(usuario)) {
+                  <span class="vos">vos</span>
+                }
+              </span>
+              <span class="username">&#64;{{ usuario.username }}</span>
+            </div>
+          </div>
+          <span class="correo" [title]="usuario.correo">{{ usuario.correo }}</span>
+          <!-- display: contents en escritorio (dos columnas); en el celular, una fila -->
+          <span class="chips">
+            <span>
+              <span class="chip" [class.chip-admin]="usuario.perfil === 'administrador'">
+                {{ usuario.perfil === 'administrador' ? 'Administrador' : 'Usuario' }}
+              </span>
+            </span>
+            <span>
+              <span
+                class="chip"
+                [class.chip-activo]="usuario.activo"
+                [class.chip-inactivo]="!usuario.activo"
+              >
+                {{ usuario.activo ? 'Activo' : 'Deshabilitado' }}
+              </span>
+            </span>
+          </span>
+          <span class="alta">{{ usuario.creadoEn | date: 'dd/MM/yyyy' }}</span>
+          <span class="accion">
+            @if (esYo(usuario)) {
+              <span class="nota" title="No podés deshabilitar tu propia cuenta">—</span>
+            } @else {
+              <button
+                mat-stroked-button
+                type="button"
+                [class.boton-peligro]="usuario.activo"
+                [disabled]="estaProcesando(usuario)"
+                [appConfirmar]="confirmacion(usuario)"
+                (confirmado)="alternarActivo(usuario)"
+              >
+                {{ usuario.activo ? 'Deshabilitar' : 'Habilitar' }}
+              </button>
+            }
+          </span>
+        </li>
+      } @empty {
+        <li class="vacio">No hay usuarios que coincidan con la búsqueda.</li>
+      }
+    </ul>
+  }
+</section>

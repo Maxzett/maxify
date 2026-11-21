@@ -5,18 +5,20 @@
 
       <div class="identidad">
         @if (usuario.imagenUrl) {
-          <img class="avatar foto" [src]="usuario.imagenUrl" [alt]="'Foto de ' + usuario.nombre" />
+          <img
+            class="avatar foto"
+            [src]="usuario.imagenUrl"
+            [alt]="'Foto de ' + usuario.nombre"
+            appImagenFallback
+          />
         } @else {
           <span class="avatar foto">{{ auth.iniciales() }}</span>
         }
         <div class="nombres">
-          <h1>{{ usuario.nombre }} {{ usuario.apellido }}</h1>
+          <h1>{{ usuario | nombreCompleto }}</h1>
           <div class="usuario">&#64;{{ usuario.username }}</div>
         </div>
-        <!-- La edición del perfil se agrega en un próximo sprint -->
-        <button mat-stroked-button type="button" disabled title="Disponible próximamente">
-          Editar perfil
-        </button>
+        <a mat-stroked-button routerLink="/perfil/editar">Editar perfil</a>
       </div>
 
       <div class="detalle">
@@ -46,30 +48,49 @@
       } @else if (error()) {
         <div class="tarjeta vacio">
           <p>{{ error() }}</p>
-          <button mat-stroked-button type="button" (click)="cargarPublicaciones()">Reintentar</button>
+          <button mat-stroked-button type="button" (click)="cargarPublicaciones()">
+            Reintentar
+          </button>
         </div>
       } @else {
         <div class="grilla">
           @for (publicacion of publicaciones(); track publicacion.id) {
             <article class="tarjeta post">
               <div class="meta">
-                {{ publicacion.creadaEn | date: 'd MMM yyyy' }} · {{ publicacion.likesCount }} me gusta
+                {{ publicacion.creadaEn | tiempoRelativo }} · {{ publicacion.likesCount }} me gusta
               </div>
-              <h3><a class="enlace-titulo" [routerLink]="['/publicacion', publicacion.id]">{{ publicacion.titulo }}</a></h3>
+              <h3>
+                <a class="enlace-titulo" [routerLink]="['/publicacion', publicacion.id]">{{
+                  publicacion.titulo
+                }}</a>
+              </h3>
               @if (publicacion.imagenUrl) {
-                <img class="imagen" [src]="publicacion.imagenUrl" [alt]="publicacion.titulo" loading="lazy" />
+                <img
+                  class="imagen"
+                  [src]="publicacion.imagenUrl"
+                  [alt]="publicacion.titulo"
+                  loading="lazy"
+                  appImagenFallback="ocultar"
+                />
               }
-              <p class="mensaje">{{ publicacion.mensaje }}</p>
+              <p class="mensaje">{{ publicacion.mensaje | truncar: 160 }}</p>
 
               @for (comentario of publicacion.comentarios; track comentario.id) {
                 <div class="comentario">
                   @if (comentario.autor?.imagenUrl) {
-                    <img class="avatar mini" [src]="comentario.autor?.imagenUrl" alt="" />
+                    <img
+                      class="avatar mini"
+                      [src]="comentario.autor?.imagenUrl"
+                      alt=""
+                      appImagenFallback
+                    />
                   } @else {
                     <span class="avatar mini">{{ iniciales(comentario.autor) }}</span>
                   }
                   <div>
-                    <span class="autor-comentario">{{ comentario.autor?.nombre ?? 'Usuario eliminado' }}</span>
+                    <span class="autor-comentario">{{
+                      comentario.autor?.nombre ?? 'Usuario eliminado'
+                    }}</span>
                     {{ comentario.mensaje }}
                     @if (comentario.modificado) {
                       <span class="editado">(editado)</span>
@@ -82,7 +103,9 @@
               @if (comentariosRestantes(publicacion) > 0) {
                 <a class="mas-comentarios" [routerLink]="['/publicacion', publicacion.id]">
                   Ver {{ comentariosRestantes(publicacion) }}
-                  {{ comentariosRestantes(publicacion) === 1 ? 'comentario más' : 'comentarios más' }}
+                  {{
+                    comentariosRestantes(publicacion) === 1 ? 'comentario más' : 'comentarios más'
+                  }}
                 </a>
               }
             </article>

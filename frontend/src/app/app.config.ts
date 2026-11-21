@@ -4,9 +4,11 @@ import localeEsAr from '@angular/common/locales/es-AR';
 import {
   ApplicationConfig,
   LOCALE_ID,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
+import { provideServiceWorker } from '@angular/service-worker';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -29,5 +31,11 @@ export const appConfig: ApplicationConfig = {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: { appearance: 'outline', subscriptSizing: 'dynamic' },
     },
+    // PWA: el service worker cachea la app (se puede instalar y abre sin
+    // conexión). Solo en producción: con ng serve no se registra.
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };
