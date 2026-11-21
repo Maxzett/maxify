@@ -12,4 +12,6 @@ npm run build      # build de producción en dist/frontend/browser
 npm test           # tests unitarios con Vitest
 ```
 
+El service worker (PWA) solo se registra en el build de producción; con `npm start` no está activo.
+
 La URL de la API se define en `src/environments/environment.ts` (desarrollo) y `environment.prod.ts` (producción; el build de producción la reemplaza con `fileReplacements`).

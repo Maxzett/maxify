@@ -3,20 +3,25 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Sesion, TokenRefrescado, Usuario } from '../models/usuario.interface';
+import { borrarCookie, guardarCookie, leerCookie } from '../utils/cookies';
+import { vencimientoDelToken } from '../utils/jwt';
 
-const CLAVE_TOKEN = 'maxify_token';
-const CLAVE_USUARIO = 'maxify_usuario';
+const COOKIE_TOKEN = 'maxify_token';
+// Claves que usaban las versiones anteriores (token y usuario en localStorage).
+const CLAVES_VIEJAS = ['maxify_token', 'maxify_usuario'];
 
-// Servicio singleton: guarda la sesión en localStorage y expone el usuario
-// y el token como signals de solo lectura (mismo patrón que en clase).
+// Servicio singleton: guarda el token en una cookie que vence junto con el
+// JWT y expone el usuario y el token como signals de solo lectura (mismo
+// patrón que en clase). Los datos del usuario no se guardan en el navegador:
+// al recargar, la pantalla Cargando los vuelve a pedir con /auth/autorizar.
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
   private url = `${environment.apiUrl}/auth`;
 
   // signals privados: solo el servicio puede cambiar la sesión.
-  private usuarioSignal = signal<Usuario | null>(this.leerUsuarioGuardado());
-  private tokenSignal = signal<string | null>(localStorage.getItem(CLAVE_TOKEN));
+  private usuarioSignal = signal<Usuario | null>(null);
+  private tokenSignal = signal<string | null>(this.leerTokenGuardado());
   // true cuando el token ya se validó contra el servidor en esta carga de la
   // app (login, registro o /auth/autorizar en la pantalla Cargando).
   private validadaSignal = signal(false);
@@ -52,23 +57,27 @@ export class AuthService {
   autorizar(): Observable<Usuario> {
     return this.http.post<Usuario>(`${this.url}/autorizar`, {}).pipe(
       tap((usuario) => {
-        localStorage.setItem(CLAVE_USUARIO, JSON.stringify(usuario));
         this.usuarioSignal.set(usuario);
         this.validadaSignal.set(true);
       }),
     );
   }
 
-  // Pide un token nuevo (otros 15 minutos) con el mismo payload.
+  // Pide un token nuevo (mismo payload, vencimiento renovado).
   refrescar(): Observable<TokenRefrescado> {
     return this.http
       .post<TokenRefrescado>(`${this.url}/refrescar`, {})
       .pipe(tap(({ token }) => this.guardarToken(token)));
   }
 
+  // Después de editar el perfil: el header y Mi perfil se actualizan solos.
+  actualizarUsuario(usuario: Usuario): void {
+    this.usuarioSignal.set(usuario);
+  }
+
+  // Borra la cookie del token (deja de verse en DevTools → Application).
   cerrarSesion(): void {
-    localStorage.removeItem(CLAVE_TOKEN);
-    localStorage.removeItem(CLAVE_USUARIO);
+    borrarCookie(COOKIE_TOKEN);
     this.usuarioSignal.set(null);
     this.tokenSignal.set(null);
     this.validadaSignal.set(false);
@@ -80,24 +89,34 @@ export class AuthService {
   }
 
   private guardarSesion(sesion: Sesion): void {
-    localStorage.setItem(CLAVE_USUARIO, JSON.stringify(sesion.usuario));
     this.usuarioSignal.set(sesion.usuario);
     this.guardarToken(sesion.token);
     // El token lo acaba de emitir el servidor: no hace falta pasar por Cargando.
     this.validadaSignal.set(true);
   }
 
+  // La cookie vence en el mismo instante que el JWT (claim "exp").
   private guardarToken(token: string): void {
-    localStorage.setItem(CLAVE_TOKEN, token);
+    const vence = vencimientoDelToken(token);
+    if (!vence) return;
+    guardarCookie(COOKIE_TOKEN, token, new Date(vence));
     this.tokenSignal.set(token);
   }
 
-  private leerUsuarioGuardado(): Usuario | null {
+  private leerTokenGuardado(): string | null {
+    // Limpieza de versiones anteriores, que guardaban todo en localStorage.
     try {
-      const guardado = localStorage.getItem(CLAVE_USUARIO);
-      return guardado ? (JSON.parse(guardado) as Usuario) : null;
+      CLAVES_VIEJAS.forEach((clave) => localStorage.removeItem(clave));
     } catch {
+      // Almacenamiento bloqueado: no hay nada que limpiar.
+    }
+    const token = leerCookie(COOKIE_TOKEN);
+    const vence = token ? vencimientoDelToken(token) : null;
+    // Por las dudas (reloj del sistema, cookie manipulada): vencido = sin sesión.
+    if (!token || !vence || vence <= Date.now()) {
+      borrarCookie(COOKIE_TOKEN);
       return null;
     }
+    return token;
   }
 }

@@ -3,10 +3,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
+import { SoloAdmin } from '../../shared/directives/solo-admin.directive';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, RouterLinkActive, MatButtonModule],
+  imports: [RouterLink, RouterLinkActive, MatButtonModule, SoloAdmin],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

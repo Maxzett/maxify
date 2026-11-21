@@ -86,6 +86,11 @@ export class Publicaciones {
     return publicacion.autor?.id === this.auth.usuario()?.id;
   }
 
+  // El autor puede eliminar las suyas; un administrador, cualquiera.
+  puedeEliminar(publicacion: Publicacion): boolean {
+    return this.esPropia(publicacion) || this.auth.esAdmin();
+  }
+
   estaProcesando(publicacion: Publicacion): boolean {
     return this.procesando().has(publicacion.id);
   }
@@ -106,31 +111,21 @@ export class Publicaciones {
     });
   }
 
-  // Modal de confirmación (sin alert) y recién después la baja.
+  // La tarjeta ya confirmó con el modal (directiva appConfirmar).
   eliminar(publicacion: Publicacion): void {
-    this.notificaciones
-      .confirmar({
-        titulo: '¿Eliminar esta publicación?',
-        mensaje: `«${publicacion.titulo}» y sus comentarios dejarán de estar visibles.`,
-        icono: 'eliminar',
-        textoCancelar: 'Cancelar',
-        textoConfirmar: 'Eliminar',
-        peligro: true,
-      })
-      .subscribe((confirmado) => {
-        if (!confirmado) return;
-        this.servicio.eliminar(publicacion.id).subscribe({
-          next: () => {
-            this.notificaciones.exito('Publicación eliminada.');
-            // Se vuelve a pedir la misma página para completarla con la
-            // siguiente publicación (si era la última de su página, el
-            // effect de "página que ya no existe" lleva a la anterior).
-            this.servicio.cargar();
-          },
-          error: (error: HttpErrorResponse) =>
-            this.notificaciones.error(this.notificaciones.mensajeDeError(error)),
-        });
-      });
+    this.servicio.eliminar(publicacion.id).subscribe({
+      next: () => {
+        this.notificaciones.exito(
+          this.esPropia(publicacion) ? 'Publicación eliminada.' : 'Publicación dada de baja.',
+        );
+        // Se vuelve a pedir la misma página para completarla con la
+        // siguiente publicación (si era la última de su página, el
+        // effect de "página que ya no existe" lleva a la anterior).
+        this.servicio.cargar();
+      },
+      error: (error: HttpErrorResponse) =>
+        this.notificaciones.error(this.notificaciones.mensajeDeError(error)),
+    });
   }
 
   private terminar(id: string): void {

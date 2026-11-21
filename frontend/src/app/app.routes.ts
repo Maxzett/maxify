@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './core/guards/admin.guard';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 
@@ -50,6 +51,21 @@ export const routes: Routes = [
     title: 'Mi perfil · Maxify',
     canActivate: [authGuard],
     loadComponent: () => import('./features/perfil/perfil').then((c) => c.Perfil),
+  },
+  {
+    path: 'perfil/editar',
+    title: 'Editar perfil · Maxify',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/editar-perfil/editar-perfil').then((c) => c.EditarPerfil),
+  },
+  // Panel de administración: authGuard (sesión validada) + adminGuard (perfil).
+  // Sus rutas (y Chart.js) se descargan solo cuando entra un administrador.
+  {
+    path: 'dashboard',
+    canActivate: [authGuard, adminGuard],
+    loadChildren: () =>
+      import('./features/dashboard/dashboard.routes').then((r) => r.rutasDashboard),
   },
   // Cualquier ruta desconocida vuelve al feed.
   { path: '**', redirectTo: 'publicaciones' },

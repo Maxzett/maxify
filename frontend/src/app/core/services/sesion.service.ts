@@ -2,14 +2,19 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, effect, inject } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { DatosDialogo, Dialogo } from '../../shared/components/dialogo/dialogo';
+import { Dialogo } from '../../shared/components/dialogo/dialogo';
+import {
+  DatosDialogoSesion,
+  DialogoSesion,
+} from '../../shared/components/dialogo-sesion/dialogo-sesion';
 import { vencimientoDelToken } from '../utils/jwt';
 import { AuthService } from './auth.service';
 import { NotificacionesService } from './notificaciones.service';
 
-// El aviso aparece 5 minutos antes de que venza el token. Como el token dura
-// 15 minutos, al iniciar sesión (o al extenderla) el contador es de 10 minutos.
-const AVISO_ANTES_MS = 5 * 60 * 1000;
+// Cuánto antes del vencimiento del token aparece el aviso. La consigna pedía
+// 5 de 15 minutos; para la corrección final el token dura 3 minutos y el
+// aviso aparece cuando queda 1 minuto.
+export const AVISO_ANTES_MS = 60 * 1000;
 
 // Controla el tiempo de la sesión: programa el modal "¿extender sesión?" y,
 // si nadie la extiende, cierra la sesión cuando el token vence.
@@ -22,12 +27,12 @@ export class SesionService {
 
   private aviso?: ReturnType<typeof setTimeout>;
   private vencimiento?: ReturnType<typeof setTimeout>;
-  private modal?: MatDialogRef<Dialogo, boolean>;
+  private modal?: MatDialogRef<DialogoSesion, boolean>;
 
   constructor() {
     // Cada vez que cambia el token (login, registro, refrescar, cerrar sesión)
-    // se reprograman los contadores. El vencimiento se lee del propio token,
-    // así el contador sigue siendo correcto aunque se recargue la página.
+    // se reprograman los contadores. Los tiempos salen del claim "exp" del
+    // propio token, así siguen siendo correctos aunque se recargue la página.
     effect(() => this.programar(this.auth.tokenActual()));
   }
 
@@ -37,26 +42,20 @@ export class SesionService {
     const vence = vencimientoDelToken(token);
     if (!vence) return;
     const restante = vence - Date.now();
-    // Ya vencido: el próximo pedido a la API responde 401 y el interceptor
-    // lleva al login.
-    if (restante <= 0) return;
-
-    this.aviso = setTimeout(() => this.preguntar(vence),Math.max(restante - AVISO_ANTES_MS, 0));
+    if (restante <= 0) {
+      this.vencer();
+      return;
+    }
+    // Ej.: token de 3 min → el aviso sale a los 2 min y el cierre a los 3.
+    this.aviso = setTimeout(() => this.preguntar(vence), Math.max(restante - AVISO_ANTES_MS, 0));
     this.vencimiento = setTimeout(() => this.vencer(), restante);
   }
 
   private preguntar(vence: number): void {
-    const minutos = Math.max(Math.round((vence - Date.now()) / 60000), 1);
-    const datos: DatosDialogo = {
-      titulo: '¿Querés extender tu sesión?',
-      mensaje: `Tu sesión vence en ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'}. Si la extendés, vas a poder seguir usando Maxify sin volver a ingresar.`,
-      icono: 'sesion',
-      textoCancelar: 'No, gracias',
-      textoConfirmar: 'Extender sesión',
-    };
-    this.modal = this.dialog.open(Dialogo, {
+    const datos: DatosDialogoSesion = { vence, aviso: AVISO_ANTES_MS };
+    this.modal = this.dialog.open(DialogoSesion, {
       data: datos,
-      width: '400px',
+      width: '420px',
       maxWidth: 'calc(100vw - 32px)',
       autoFocus: false,
       // Se responde con los botones: así no se descarta sin querer.
@@ -71,22 +70,34 @@ export class SesionService {
   private extender(): void {
     // Al guardar el token nuevo, el effect reprograma los contadores.
     this.auth.refrescar().subscribe({
-      next: () => this.notificaciones.exito('Listo, extendimos tu sesión 15 minutos.'),
+      next: () => this.notificaciones.exito('Listo, extendimos tu sesión.'),
       error: (error: HttpErrorResponse) => {
-        // Un 401 ya lo resuelve el interceptor (cierra sesión y va al login).
-        if (error.status !== 401)
+        // 401 y cuenta deshabilitada ya los resuelve el interceptor.
+        if (error.status !== 401 && error.status !== 403)
           this.notificaciones.error(this.notificaciones.mensajeDeError(error));
       },
     });
   }
 
-  // El token venció sin extenderse: se cierra la sesión y se vuelve al login.
+  // El token venció sin extenderse: se borra la sesión (y la cookie), se
+  // vuelve al login y se avisa con un modal.
   private vencer(): void {
     this.modal?.close();
     if (!this.auth.token) return;
     this.auth.cerrarSesion();
-    this.notificaciones.error('Tu sesión venció. Iniciá sesión de nuevo.');
     this.router.navigate(['/login']);
+    this.dialog.open(Dialogo, {
+      data: {
+        titulo: 'Tu sesión venció',
+        mensaje:
+          'Pasó el tiempo de tu sesión y no se extendió. Iniciá sesión de nuevo para seguir usando Maxify.',
+        icono: 'sesion',
+        textoConfirmar: 'Entendido',
+      },
+      width: '400px',
+      maxWidth: 'calc(100vw - 32px)',
+      autoFocus: false,
+    });
   }
 
   private cancelar(): void {

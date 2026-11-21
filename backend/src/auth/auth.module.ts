@@ -6,6 +6,11 @@ import { UsuariosModule } from '../usuarios/usuarios.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { RolesGuard } from './roles.guard';
+
+// Duración del token. La consigna pide 15 minutos; para la corrección final
+// el docente pidió 3 minutos (el front avisa 1 minuto antes de que venza).
+export const DURACION_TOKEN = '3m';
 
 @Module({
   imports: [
@@ -16,7 +21,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
     JwtModule.registerAsync({
       useFactory: () => ({
         secret: process.env.JWT_SECRET,
-        signOptions: { expiresIn: '15m' },
+        signOptions: { expiresIn: DURACION_TOKEN },
       }),
     }),
   ],
@@ -24,7 +29,9 @@ import { JwtAuthGuard } from './jwt-auth.guard';
   providers: [
     AuthService,
     // Guard global: todas las rutas piden token salvo las marcadas @Publico().
+    // Se ejecutan en este orden: primero el token, después el perfil.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AuthModule {}

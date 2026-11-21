@@ -1,0 +1,35 @@
+<div class="contenedor">
+  <a class="volver" routerLink="/perfil">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      aria-hidden="true"
+    >
+      <path d="M15 6l-6 6 6 6"></path>
+    </svg>
+    Volver a mi perfil
+  </a>
+
+  <div>
+    <h1>Editar perfil</h1>
+    <p class="subtitulo">
+      Actualizá tus datos y tu foto. El correo y el nombre de usuario no se pueden cambiar.
+    </p>
+  </div>
+
+  <section class="tarjeta formulario">
+    <app-formulario-usuario
+      modo="editar"
+      textoEnviar="Guardar cambios"
+      rutaCancelar="/perfil"
+      [usuario]="auth.usuario()"
+      [cargando]="guardando()"
+      (enviar)="guardar($event)"
+      (invalido)="avisarErrores()"
+    />
+  </section>
+</div>

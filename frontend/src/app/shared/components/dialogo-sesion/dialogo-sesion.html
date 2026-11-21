@@ -1,0 +1,44 @@
+<div class="dialogo">
+  <div class="icono" aria-hidden="true">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+    >
+      <circle cx="12" cy="13" r="8"></circle>
+      <path d="M12 9v4l2.5 2M9 2h6"></path>
+    </svg>
+  </div>
+
+  <h2 mat-dialog-title class="titulo">¿Querés extender tu sesión?</h2>
+
+  <mat-dialog-content>
+    <p class="mensaje">
+      Tu sesión está por vencer. Si la extendés, vas a poder seguir usando Maxify sin volver a
+      ingresar.
+    </p>
+
+    <div class="cuenta" role="timer" aria-live="off">
+      <span class="tiempo" [class.urgente]="restanteMs() <= 15000">{{ tiempo() }}</span>
+      <span class="leyenda">para que venza</span>
+    </div>
+    <div
+      class="barra"
+      role="progressbar"
+      aria-label="Tiempo restante de la sesión"
+      [attr.aria-valuenow]="porcentajeEntero()"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <div class="relleno" [style.width.%]="porcentaje()"></div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button [mat-dialog-close]="false">No, gracias</button>
+    <button mat-flat-button [mat-dialog-close]="true" cdkFocusInitial>Extender sesión</button>
+  </mat-dialog-actions>
+</div>

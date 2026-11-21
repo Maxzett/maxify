@@ -31,11 +31,12 @@ export class Publicacion {
   error = signal<string | null>(null);
   procesando = signal(false);
 
-  // Solo el autor ve el botón de eliminar.
   esPropia = computed(() => {
     const publicacion = this.publicacion();
     return !!publicacion && publicacion.autor?.id === this.auth.usuario()?.id;
   });
+  // El autor puede eliminarla; un administrador puede dar de baja cualquiera.
+  puedeEliminar = computed(() => this.esPropia() || this.auth.esAdmin());
 
   constructor() {
     // Si cambia el id (otra publicación), se vuelve a cargar.
@@ -80,29 +81,20 @@ export class Publicacion {
     });
   }
 
+  // La tarjeta ya confirmó con el modal (directiva appConfirmar).
   eliminar(): void {
     const publicacion = this.publicacion();
     if (!publicacion) return;
-    this.notificaciones
-      .confirmar({
-        titulo: '¿Eliminar esta publicación?',
-        mensaje: `«${publicacion.titulo}» y sus comentarios dejarán de estar visibles.`,
-        icono: 'eliminar',
-        textoCancelar: 'Cancelar',
-        textoConfirmar: 'Eliminar',
-        peligro: true,
-      })
-      .subscribe((confirmado) => {
-        if (!confirmado) return;
-        this.servicio.eliminar(publicacion.id).subscribe({
-          next: () => {
-            this.notificaciones.exito('Publicación eliminada.');
-            this.router.navigate(['/publicaciones']);
-          },
-          error: (error: HttpErrorResponse) =>
-            this.notificaciones.error(this.notificaciones.mensajeDeError(error)),
-        });
-      });
+    this.servicio.eliminar(publicacion.id).subscribe({
+      next: () => {
+        this.notificaciones.exito(
+          this.esPropia() ? 'Publicación eliminada.' : 'Publicación dada de baja.',
+        );
+        this.router.navigate(['/publicaciones']);
+      },
+      error: (error: HttpErrorResponse) =>
+        this.notificaciones.error(this.notificaciones.mensajeDeError(error)),
+    });
   }
 
   // El componente de comentarios avisa cuando se agrega uno.

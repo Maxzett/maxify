@@ -1,43 +1,81 @@
 <article class="tarjeta publicacion">
   <div class="autor">
     @if (publicacion().autor?.imagenUrl) {
-      <img class="avatar foto-autor" [src]="publicacion().autor?.imagenUrl" alt="" />
+      <img
+        class="avatar foto-autor"
+        [src]="publicacion().autor?.imagenUrl"
+        alt=""
+        appImagenFallback
+      />
     } @else {
       <span class="avatar foto-autor">{{ iniciales() }}</span>
     }
     <div class="datos-autor">
       @if (publicacion().autor; as autor) {
-        <div class="nombre">{{ autor.nombre }} {{ autor.apellido }}</div>
-        <div class="meta">&#64;{{ autor.username }} · {{ publicacion().creadaEn | date: 'd MMM, HH:mm' }}</div>
+        <div class="nombre">{{ autor | nombreCompleto }}</div>
+        <div class="meta">
+          &#64;{{ autor.username }} ·
+          <time
+            [attr.datetime]="publicacion().creadaEn"
+            [title]="publicacion().creadaEn | date: 'd MMM yyyy, HH:mm'"
+            >{{ publicacion().creadaEn | tiempoRelativo }}</time
+          >
+        </div>
       } @else {
-        <div class="nombre">Usuario eliminado</div>
-        <div class="meta">{{ publicacion().creadaEn | date: 'd MMM, HH:mm' }}</div>
+        <div class="nombre">{{ null | nombreCompleto }}</div>
+        <div class="meta">{{ publicacion().creadaEn | tiempoRelativo }}</div>
       }
     </div>
     @if (puedeEliminar()) {
       <button
         type="button"
         class="accion eliminar"
-        (click)="eliminar.emit()"
-        aria-label="Eliminar publicación"
-        title="Eliminar publicación"
+        [appConfirmar]="confirmacion()"
+        (confirmado)="eliminar.emit()"
+        [attr.aria-label]="
+          bajaAdmin() ? 'Dar de baja publicación (administrador)' : 'Eliminar publicación'
+        "
+        [title]="bajaAdmin() ? 'Dar de baja (administrador)' : 'Eliminar publicación'"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          aria-hidden="true"
+        >
+          <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path>
+        </svg>
       </button>
     }
   </div>
 
   <div>
     @if (enlazar()) {
-      <h2><a class="enlace-titulo" [routerLink]="['/publicacion', publicacion().id]">{{ publicacion().titulo }}</a></h2>
+      <h2>
+        <a class="enlace-titulo" [routerLink]="['/publicacion', publicacion().id]">{{
+          publicacion().titulo
+        }}</a>
+      </h2>
     } @else {
       <h1 class="titulo-detalle">{{ publicacion().titulo }}</h1>
     }
-    <p class="mensaje">{{ publicacion().mensaje }}</p>
+    <!-- En el feed el mensaje se recorta; el detalle lo muestra completo -->
+    <p class="mensaje">
+      {{ enlazar() ? (publicacion().mensaje | truncar: 220) : publicacion().mensaje }}
+    </p>
   </div>
 
   @if (publicacion().imagenUrl) {
-    <img class="imagen" [src]="publicacion().imagenUrl" [alt]="publicacion().titulo" loading="lazy" />
+    <img
+      class="imagen"
+      [src]="publicacion().imagenUrl"
+      [alt]="publicacion().titulo"
+      loading="lazy"
+      appImagenFallback="ocultar"
+    />
   }
 
   <div class="pie">
@@ -50,19 +88,51 @@
       (click)="alternarMeGusta.emit()"
       [title]="publicacion().meGusta ? 'Quitar me gusta' : 'Me gusta'"
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" [attr.fill]="publicacion().meGusta ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        [attr.fill]="publicacion().meGusta ? 'currentColor' : 'none'"
+        stroke="currentColor"
+        stroke-width="1.6"
+        aria-hidden="true"
+      >
+        <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path>
+      </svg>
       {{ publicacion().likesCount }} Me gusta
     </button>
     <!-- En el feed lleva al detalle; en el detalle solo muestra el contador -->
     @if (enlazar()) {
       <a class="accion" [routerLink]="['/publicacion', publicacion().id]">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>
-        {{ publicacion().comentariosCount }} {{ publicacion().comentariosCount === 1 ? 'comentario' : 'comentarios' }}
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          aria-hidden="true"
+        >
+          <path d="M4 5h16v11H9l-5 4z"></path>
+        </svg>
+        {{ publicacion().comentariosCount }}
+        {{ publicacion().comentariosCount === 1 ? 'comentario' : 'comentarios' }}
       </a>
     } @else {
       <span class="accion dato">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>
-        {{ publicacion().comentariosCount }} {{ publicacion().comentariosCount === 1 ? 'comentario' : 'comentarios' }}
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          aria-hidden="true"
+        >
+          <path d="M4 5h16v11H9l-5 4z"></path>
+        </svg>
+        {{ publicacion().comentariosCount }}
+        {{ publicacion().comentariosCount === 1 ? 'comentario' : 'comentarios' }}
       </span>
     }
   </div>

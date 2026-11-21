@@ -6,6 +6,10 @@ import { RouterLink } from '@angular/router';
 import { AutorResumen, Publicacion } from '../../core/models/publicacion.interface';
 import { AuthService } from '../../core/services/auth.service';
 import { PublicacionesService } from '../../core/services/publicaciones.service';
+import { ImagenFallback } from '../../shared/directives/imagen-fallback.directive';
+import { NombreCompletoPipe } from '../../shared/pipes/nombre-completo.pipe';
+import { TiempoRelativoPipe } from '../../shared/pipes/tiempo-relativo.pipe';
+import { TruncarPipe } from '../../shared/pipes/truncar.pipe';
 
 // Cuántas publicaciones y cuántos comentarios por publicación se muestran.
 const ULTIMAS_PUBLICACIONES = 3;
@@ -15,7 +19,16 @@ const COMENTARIOS_POR_PUBLICACION = 3;
 // con sus comentarios.
 @Component({
   selector: 'app-perfil',
-  imports: [DatePipe, RouterLink, MatButtonModule, MatProgressSpinnerModule],
+  imports: [
+    DatePipe,
+    RouterLink,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    ImagenFallback,
+    NombreCompletoPipe,
+    TiempoRelativoPipe,
+    TruncarPipe,
+  ],
   templateUrl: './perfil.html',
   styleUrl: './perfil.scss',
 })

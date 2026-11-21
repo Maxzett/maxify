@@ -6,7 +6,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { cuentaDeshabilitada } from './cuenta-deshabilitada';
 import type { Request } from 'express';
+import { UsuariosService } from '../usuarios/usuarios.service';
 import { ES_PUBLICA } from './publico.decorator';
 import type { UsuarioToken } from './usuario-token';
 
@@ -18,11 +20,14 @@ export interface RequestConUsuario extends Request {
 // Guard global (se registra en AuthModule con APP_GUARD): toda ruta exige un
 // token válido en el header "Authorization: Bearer <token>", salvo las
 // marcadas con @Publico(). Sin token o con token vencido/inválido → 401.
+// Además comprueba que la cuenta siga habilitada: si un administrador la
+// deshabilita, el próximo pedido responde 403 aunque el token no haya vencido.
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwt: JwtService,
     private readonly reflector: Reflector,
+    private readonly usuarios: UsuariosService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -38,12 +43,18 @@ export class JwtAuthGuard implements CanActivate {
     if (tipo !== 'Bearer' || !token)
       throw new UnauthorizedException('Falta el token de acceso');
 
+    let usuario: UsuarioToken;
     try {
       // verifyAsync comprueba la firma con JWT_SECRET y el vencimiento.
-      request.usuario = await this.jwt.verifyAsync<UsuarioToken>(token);
+      usuario = await this.jwt.verifyAsync<UsuarioToken>(token);
     } catch {
       throw new UnauthorizedException('El token es inválido o venció');
     }
+
+    const documento = await this.usuarios.buscarPorId(usuario.sub);
+    if (!documento) throw new UnauthorizedException('La cuenta ya no existe');
+    if (!documento.activo) throw cuentaDeshabilitada();
+    request.usuario = usuario;
     return true;
   }
 }
